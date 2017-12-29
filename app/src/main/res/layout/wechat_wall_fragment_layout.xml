@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background"
+    android:orientation="vertical">
+
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv_wechat_wall"
+        android:layout_width="750px"
+        android:layout_height="480px"
+        android:layout_gravity="center"
+        android:layout_marginBottom="10px"
+        android:layout_marginTop="20px">
+
+    </android.support.v7.widget.RecyclerView>
+
+    <RelativeLayout
+        android:layout_width="750px"
+        android:layout_height="68px"
+        android:layout_gravity="center"
+        android:layout_marginBottom="20px"
+        android:layout_marginTop="10px">
+
+        <EditText
+            android:layout_width="640px"
+            android:layout_height="68px"
+            android:paddingLeft="14px"
+            android:layout_centerVertical="true"
+            android:background="#FFF"
+            android:hint="请输入内容" />
+
+        <Button
+            android:layout_width="100px"
+            android:layout_height="68px"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:textSize="22px"
+            android:background="#FFF"
+            android:text="发送" />
+
+    </RelativeLayout>
+</LinearLayout>

@@ -2,8 +2,8 @@ package com.esioner.votecenter.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.support.annotation.Nullable;
-import android.text.Layout;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -65,6 +65,7 @@ public class AmountChangeView extends LinearLayout implements View.OnClickListen
         tvAmount.setLayoutParams(textParams);
         if (tvTextSize != 0) {
             tvAmount.setTextSize(TypedValue.COMPLEX_UNIT_PX, tvTextSize);
+//            tvAmount.setTextColor(Color.rgb(251, 81, 16));
         }
     }
 
@@ -74,12 +75,12 @@ public class AmountChangeView extends LinearLayout implements View.OnClickListen
             case R.id.btn_decrease:
                 if (amount > 1) {
                     amount--;
-                    tvAmount.setText(amount+"");
+                    tvAmount.setText(amount + "");
                 }
                 break;
             case R.id.btn_increase:
                 amount++;
-                tvAmount.setText(amount+"");
+                tvAmount.setText(amount + "");
                 break;
             default:
         }

@@ -2,23 +2,28 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:background="@drawable/background"
+    android:gravity="center"
     android:orientation="vertical">
 
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rv_user_info"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_width="880px"
+        android:layout_height="500px"
         android:layout_gravity="center"
-        android:layout_weight="8">
+        android:layout_marginTop="5dp">
 
     </android.support.v7.widget.RecyclerView>
 
     <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="2"
-        android:gravity="center_vertical">
+        android:layout_width="880px"
+        android:layout_height="74px"
+        android:layout_gravity="center"
+        android:layout_marginBottom="17px"
+        android:background="#FFF"
+        android:gravity="center">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -36,8 +41,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="总共可投票数："
-                    android:textColor="@android:color/black"
-                    android:textSize="18dp" />
+                    android:textColor="#171717"
+                    android:textSize="18px" />
 
                 <TextView
                     android:id="@+id/tv_total_vote_num"
@@ -45,8 +50,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"
                     android:text="10"
-                    android:textColor="@android:color/black"
-                    android:textSize="18dp" />
+                    android:textColor="#171717"
+                    android:textSize="20px" />
             </LinearLayout>
 
             <LinearLayout
@@ -57,8 +62,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="每项可投票数："
-                    android:textColor="@android:color/black"
-                    android:textSize="18dp" />
+                    android:textColor="#171717"
+                    android:textSize="18px" />
 
                 <TextView
                     android:id="@+id/tv_each_vote_num"
@@ -66,21 +71,23 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"
                     android:text="5"
-                    android:textColor="@android:color/black"
-                    android:textSize="18dp" />
+                    android:textColor="#171717"
+                    android:textSize="20px" />
             </LinearLayout>
         </LinearLayout>
 
-        <Button
+        <TextView
             android:id="@+id/btn_vote"
-            android:layout_width="200dp"
-            android:layout_height="60dp"
+            android:layout_width="170px"
+            android:layout_height="50px"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:layout_margin="10dp"
             android:layout_marginRight="30dp"
+            android:background="@drawable/bg_vote_button"
             android:gravity="center"
             android:text="投票"
-            android:textSize="22dp" />
+            android:textColor="#FFF"
+            android:textSize="30px" />
     </RelativeLayout>
 </LinearLayout>

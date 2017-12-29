@@ -1,34 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
-    android:background="@drawable/amount_view_background"
-    android:divider="@drawable/divider"
     android:layout_height="wrap_content">
 
     <Button
         android:id="@+id/btn_decrease"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:background="@drawable/amount_view_btn_bg"
+        android:layout_width="45px"
+        android:layout_height="45px"
+        android:layout_gravity="center"
         android:gravity="center"
         android:text="-" />
 
     <TextView
         android:id="@+id/tv_amount"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
+        android:layout_width="45px"
+        android:layout_height="45px"
         android:gravity="center"
         android:text="0"
-        android:textSize="22dp" />
+        android:textColor="#fff"
+        android:textSize="28px" />
 
     <Button
         android:id="@+id/btn_increase"
-        android:layout_width="0dp"
-        android:background="@drawable/amount_view_btn_bg"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
+        android:layout_width="45px"
+        android:layout_height="45px"
+        android:layout_gravity="center"
         android:gravity="center"
         android:text="+" />
 </LinearLayout>
