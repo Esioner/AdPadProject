@@ -7,10 +7,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
-import com.esioner.votecenter.frame.ResponderFragment;
-import com.esioner.votecenter.frame.ResponderResultFragment;
-import com.esioner.votecenter.frame.VoteFragment;
-import com.esioner.votecenter.frame.WeChatWallFragment;
+import com.esioner.votecenter.fragment.CarouselFragment;
+import com.esioner.votecenter.fragment.ResponderFragment;
+import com.esioner.votecenter.fragment.ResponderResultFragment;
+import com.esioner.votecenter.fragment.VoteFragment;
+import com.esioner.votecenter.fragment.WeChatWallFragment;
 
 /**
  * @author Esioner
@@ -21,12 +22,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int RESPONDER_FRAGMENT_ID = 1;
     private static final int VOTE_FRAGMENT_ID = 2;
     private static final int WE_CHAT_WALL_FRAGMENT_ID = 3;
+    private static final int CAROUSEL_FRAGMENT_ID = 4;
 
 
     private ResponderResultFragment resultFragment;
     private ResponderFragment responderFragment;
     private VoteFragment voteFragment;
     private WeChatWallFragment weChatWallFragment;
+    private CarouselFragment carouselFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 switchFragment(3);
                 break;
             case R.id.btn_4:
-//                switchFragment(4);
+                switchFragment(4);
                 break;
             default:
         }
@@ -99,6 +102,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 weChatWallFragment = new WeChatWallFragment();
                 transactionFragment(weChatWallFragment);
                 break;
+            case CAROUSEL_FRAGMENT_ID:
+                if (carouselFragment != null) {
+                    carouselFragment = null;
+                }
+                carouselFragment = new CarouselFragment();
+                transactionFragment(carouselFragment);
+                break;
             default:
         }
     }
@@ -109,13 +119,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * @param fragment
      */
     private void transactionFragment(Fragment fragment) {
-            //fragment 管理器
-            FragmentManager manager = getSupportFragmentManager();
-            //fragment 事务
-            FragmentTransaction transaction = manager.beginTransaction();
-            transaction.addToBackStack(null);
-            transaction.replace(R.id.frame_layout, fragment);
-            transaction.commit();
+        //fragment 管理器
+        FragmentManager manager = getSupportFragmentManager();
+        //fragment 事务
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.addToBackStack(null);
+        transaction.replace(R.id.frame_layout, fragment);
+        transaction.commit();
     }
 
     /**

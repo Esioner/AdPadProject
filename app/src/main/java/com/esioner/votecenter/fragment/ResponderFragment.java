@@ -1,4 +1,4 @@
-package com.esioner.votecenter.frame;
+package com.esioner.votecenter.fragment;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
