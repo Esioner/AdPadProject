@@ -6,14 +6,24 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.esioner.votecenter.R;
+import com.esioner.votecenter.entity.VoteData;
+import com.esioner.votecenter.utils.OkHttpUtils;
+import com.esioner.votecenter.utils._URL;
+import com.google.gson.Gson;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 /**
  * @author Esioner
@@ -42,6 +52,12 @@ public class VoteFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        initData();
+    }
+
     private void initView() {
         List list = new ArrayList();
         for (int i = 0; i < 6; i++) {
@@ -53,6 +69,26 @@ public class VoteFragment extends Fragment {
         rvPersonInfo.addItemDecoration(new SpaceItemDecoration(15));
         rvPersonInfo.setLayoutManager(manager);
         rvPersonInfo.setAdapter(adapter);
+    }
+
+    public void initData() {
+        /**
+         * 获取投票列表
+         */
+        OkHttpUtils.getInstance().getData(_URL.VOTE_DATA_URL, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String jsonBody = response.body().string();
+                Log.d("vote_jsonBody", "onResponse: " + jsonBody);
+                VoteData voteData = new Gson().fromJson(jsonBody, VoteData.class);
+                Log.d("voteData", voteData.toString());
+            }
+        });
     }
 
     public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAdapter.ViewHolder> {
@@ -90,26 +126,6 @@ public class VoteFragment extends Fragment {
     class SpaceItemDecoration extends RecyclerView.ItemDecoration {
         int mSpace;
 
-        /**
-         * Retrieve any offsets for the given item. Each field of <code>outRect</code> specifies
-         * the number of pixels that the item view should be inset by, similar to padding or margin.
-         * The default implementation sets the bounds of outRect to 0 and returns.
-         * <p>
-         * <p>
-         * If this ItemDecoration does not affect the positioning of item views, it should set
-         * all four fields of <code>outRect</code> (left, top, right, bottom) to zero
-         * before returning.
-         * <p>
-         * <p>
-         * If you need to access Adapter for additional data, you can call
-         * {@link RecyclerView#getChildAdapterPosition(View)} to get the adapter position of the
-         * View.
-         *
-         * @param outRect Rect to receive the output.
-         * @param view    The child view to decorate
-         * @param parent  RecyclerView this ItemDecoration is decorating
-         * @param state   The current state of RecyclerView.
-         */
         @Override
         public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
             super.getItemOffsets(outRect, view, parent, state);

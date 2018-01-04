@@ -1,45 +1,75 @@
 package com.esioner.votecenter.fragment;
 
-import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.VideoView;
 
-import com.bumptech.glide.Glide;
+import com.esioner.votecenter.Bean;
 import com.esioner.votecenter.R;
 import com.esioner.votecenter.adapter.ViewPagerAdapter;
+import com.esioner.votecenter.entity.CarouselData;
+import com.esioner.votecenter.utils.OkHttpUtils;
+import com.esioner.votecenter.utils._URL;
+import com.google.gson.Gson;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 /**
  * @author Esioner
  * @date 2018/1/2
  */
 
-public class CarouselFragment extends Fragment {
+public class CarouselFragment extends Fragment implements ViewPagerAdapter.PlayListener {
 
     private ViewPager viewPager;
-    private int position = 0;
-    private List<View> viewList = new ArrayList<>();
+    private int mPosition = 0;
+    /**
+     * 资源实体类
+     */
+    List<Bean> beans = new ArrayList<>();
     private File[] files;
-    private long period = 5000;
-    private Timer mTimer;
-    private TimerTask mTask;
-    private long duration = 5000;
+    private long duration = 2000;
+    public static final int SWITCH_PAGE_NEXT = 1;
+    public static final int SWITCH_PAGE_PREVIOUS = 0;
+    private final Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case SWITCH_PAGE_NEXT:
+                    if (mPosition < beans.size() - 1) {
+                        mPosition++;
+                    } else {
+                        mPosition = 0;
+                    }
+                    break;
+                case SWITCH_PAGE_PREVIOUS:
+                    if (mPosition > 0) {
+                        mPosition--;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            Log.d("handleMessage", "handleMessage: " + mPosition);
+            viewPager.setCurrentItem(mPosition);
+        }
+
+    };
+    private Runnable mRunnable;
 
     @Nullable
     @Override
@@ -53,48 +83,60 @@ public class CarouselFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         initData();
-        viewPager.setAdapter(new ViewPagerAdapter(viewList));
-//        viewPager.setCurrentItem(0);
-        startCarousel();
+//        ViewPagerAdapter adapter = new ViewPagerAdapter(beans, getActivity().getApplicationContext());
+//        adapter.setPlayListener(this);
+//        viewPager.setAdapter(adapter);
+//        MyPagerChangeListener listener = new MyPagerChangeListener();
+//        viewPager.addOnPageChangeListener(listener);
+//        viewPager.setCurrentItem(mPosition);
+//        listener.setPageSelect(mPosition);
+
+//        startCarousel();
     }
 
     private void initData() {
-        File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "shopmanager" + File.separator + "advs");
-        Log.d("File", "file.path: " + file.getAbsolutePath());
-        if (file.isDirectory()) {
-            Log.d("File", "是文件夹 ");
-            files = file.listFiles();
-        } else {
-            Log.d("File", "不是文件夹 ");
-        }
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        LinearLayout linearLayout;
-        ImageView imageView;
-        VideoView videoView;
-        for (File mediaFile : files) {
-            linearLayout = new LinearLayout(getActivity().getApplicationContext());
-            linearLayout.setOrientation(LinearLayout.HORIZONTAL);
-            linearLayout.setGravity(Gravity.CENTER);
-            linearLayout.setLayoutParams(params);
-            linearLayout.setBackgroundColor(Color.WHITE);
-            Log.d("File", "initData: " + mediaFile.getName());
-            if (mediaFile.isFile()) {
-                if (mediaFile.getName().endsWith(".jpg") || mediaFile.getName().endsWith(".png") || mediaFile.getName().endsWith(".gif")) {
-                    imageView = new ImageView(getActivity().getApplicationContext());
-                    Glide.with(getActivity().getApplicationContext()).load(mediaFile).into(imageView);
-                    linearLayout.addView(imageView);
-                    viewList.add(linearLayout);
-                } else if (mediaFile.getName().endsWith(".mp4")) {
-                    videoView = new VideoView(getActivity().getApplicationContext());
-                    videoView.setVideoPath(mediaFile.getAbsolutePath());
-                    videoView.start();
-                    linearLayout.addView(videoView);
-                    viewList.add(linearLayout);
-                }
-            }
-        }
-    }
+        OkHttpUtils.getInstance().getData(_URL.CAROUSEL_DATA_URL, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
 
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String jsonBody = response.body().string();
+                Log.d("onResponse", "onResponse: " + jsonBody);
+                CarouselData carouselData = new Gson().fromJson(jsonBody, CarouselData.class);
+                Log.d("carouselData", carouselData.toString());
+
+            }
+        });
+//        File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "shopmanager" + File.separator + "advs");
+//        Log.d("File", "file.path: " + file.getAbsolutePath());
+//        if (file.isDirectory()) {
+//            Log.d("File", "是文件夹 ");
+//            files = file.listFiles();
+//            Bean bean;
+//            for (File file1 : files) {
+//                bean = new Bean();
+//                if (file1.getName().endsWith(".png") || file1.getName().endsWith(".jpg")) {
+//                    bean.setPath(file1.getAbsolutePath());
+//                    bean.setType(0);
+//                } else if (file1.getName().endsWith(".mp4")) {
+//                    bean.setType(1);
+//                    bean.setPath(file1.getAbsolutePath());
+//                }
+//
+//                if (!bean.isEmpty()) {
+//                    beans.add(bean);
+//                }
+//
+//            }
+//
+//        } else {
+//            Log.d("File", "不是文件夹 ");
+//
+//        }
+    }
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
@@ -104,74 +146,62 @@ public class CarouselFragment extends Fragment {
         }
     }
 
-    /**
-     * 轮播
-     */
-    private void startCarousel() {
-        Log.d("FILE", "startCarousel: 开始轮播");
-        mTask = new TimerTask() {
-            @Override
-            public void run() {
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        viewPager.setCurrentItem(position);
-                        if (position < viewList.size() - 1) {
-                            position = position + 1;
-                        } else {
-                            position = 0;
-                        }
-                    }
-                });
-            }
-        };
-        mTimer = new Timer();
-        mTimer.schedule(mTask, duration);
-//        ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(1);
-//        executorService.scheduleAtFixedRate(new Runnable() {
-//            @Override
-//            public void run() {
-//
-//            }
-//        }, 0, 5, TimeUnit.MICROSECONDS);
-    }
-
     @Override
     public void onStart() {
         super.onStart();
     }
 
+
     @Override
     public void onPause() {
         super.onPause();
-        cancelTimer();
     }
 
-    private void cancelTimer() {
-        if (mTask != null) {
-            mTask.cancel();
-            mTask = null;
-        }
-        if (mTimer != null) {
-            mTimer.cancel();
-            mTimer = null;
-        }
+    @Override
+    public void playComplete(int position) {
+        mHandler.sendEmptyMessage(SWITCH_PAGE_NEXT);
     }
-    public class MyPagerChangeListener implements ViewPager.OnPageChangeListener{
+
+
+    public class MyPagerChangeListener implements ViewPager.OnPageChangeListener {
 
         @Override
         public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
+            //如果滑动就重新计时
+            mHandler.removeCallbacks(mRunnable);
+            mPosition = position;
+            if (beans.get(position).getType() == 0) {
+                startCountdown();
+            }
         }
 
         @Override
         public void onPageSelected(int position) {
-
+            mPosition = position;
+            Log.d("MyPagerChangeListener", "onPageSelected: " + position);
+//            如果播放图片开启计时器
+            if (beans.get(position).getType() == 0) {
+                startCountdown();
+            }
         }
 
         @Override
         public void onPageScrollStateChanged(int state) {
-
         }
+
+        public void setPageSelect(int position) {
+            this.onPageSelected(position);
+        }
+
+    }
+
+    private void startCountdown() {
+        mRunnable = new Runnable() {
+            @Override
+            public void run() {
+                mHandler.sendEmptyMessage(SWITCH_PAGE_NEXT);
+            }
+        };
+        mHandler.postDelayed(mRunnable, duration);
     }
 }
