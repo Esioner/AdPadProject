@@ -30,4 +30,6 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.4.0'
     implementation 'com.squareup.okhttp3:okhttp:3.9.1'
     compile 'com.google.code.gson:gson:2.8.2'
-    compile 'cn.jzvd:jiaozivideoplayer:6.2.3'}
+    compile 'cn.jzvd:jiaozivideoplayer:6.2.3'
+    compile 'com.liulishuo.filedownloader:library:1.6.9'
+}

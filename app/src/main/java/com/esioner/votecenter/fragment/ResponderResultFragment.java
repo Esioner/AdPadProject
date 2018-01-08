@@ -18,16 +18,20 @@ import com.esioner.votecenter.R;
 
 public class ResponderResultFragment extends Fragment {
 
+    private TextView tvResult;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.responsder_result_fragment_layout, null);
-        TextView tvResult = view.findViewById(R.id.tv_result);
-        Bundle bundle = getArguments();
-        if (bundle != null) {
-            int result = bundle.getInt("result", 0);
-            tvResult.setText(result + "");
-        }
+        tvResult = view.findViewById(R.id.tv_result);
         return view;
+    }
+
+    /**
+     * 设置结果
+     */
+    public void setResult(String text) {
+        tvResult.setText(text);
     }
 }

@@ -1,11 +1,13 @@
 package com.esioner.votecenter.utils;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /**
  * @author Esioner
@@ -36,7 +38,7 @@ public class OkHttpUtils {
     }
 
     /**
-     * GET 请求获取轮播数据
+     * GET 请求获取数据
      *
      * @param url
      * @param callback
@@ -46,6 +48,24 @@ public class OkHttpUtils {
                 .url(url)
                 .build();
         mClient.newCall(request).enqueue(callback);
+    }
+
+    /**
+     * GET 请求获取数据
+     *
+     * @param url
+     */
+    public Response download(String url) {
+        Response response = null;
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+        try {
+            response = mClient.newCall(request).execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return response;
     }
 
 }

@@ -2,22 +2,17 @@ package com.esioner.votecenter.adapter;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.media.MediaPlayer;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
 import android.view.Gravity;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.bumptech.glide.Glide;
-import com.esioner.votecenter.Bean;
+import com.esioner.votecenter.entity.CarouselData;
 
-import java.io.IOException;
 import java.util.List;
 
 import cn.jzvd.JZVideoPlayerStandard;
@@ -28,12 +23,12 @@ import cn.jzvd.JZVideoPlayerStandard;
  */
 
 public class ViewPagerAdapter extends PagerAdapter {
-    private List<Bean> beans;
+    private List<CarouselData.Data.Materials> materials;
     private Context mContext;
     private PlayListener playListener;
 
-    public ViewPagerAdapter(List<Bean> beans, Context context) {
-        this.beans = beans;
+    public ViewPagerAdapter(List<CarouselData.Data.Materials> materials, Context context) {
+        this.materials = materials;
         this.mContext = context;
     }
 
@@ -52,7 +47,7 @@ public class ViewPagerAdapter extends PagerAdapter {
 
     @Override
     public int getCount() {
-        return beans.size();
+        return materials.size();
     }
 
     @Override
@@ -72,7 +67,7 @@ public class ViewPagerAdapter extends PagerAdapter {
      * @return
      */
     public View getView(final int position) {
-        Bean bean = beans.get(position);
+        CarouselData.Data.Materials material = materials.get(position);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         LinearLayout linearLayout;
         linearLayout = new LinearLayout(mContext);
@@ -80,15 +75,14 @@ public class ViewPagerAdapter extends PagerAdapter {
         linearLayout.setGravity(Gravity.CENTER);
         linearLayout.setLayoutParams(params);
         linearLayout.setBackgroundColor(Color.WHITE);
-        if (bean.getType() == 0) {
+        if (material.getType() == 0) {
             ImageView imageView = new ImageView(mContext);
             imageView.setLayoutParams(params);
-            Glide.with(mContext).load(bean.getPath()).into(imageView);
+            Glide.with(mContext).load(material.getSrc()).into(imageView);
             linearLayout.addView(imageView);
-        } else if (bean.getType() == 1) {
+        } else if (material.getType() == 1) {
             JZVideoPlayerStandard playerStandard = new JZVideoPlayerStandard(mContext);
-            playerStandard.setUp(bean.getPath(), JZVideoPlayerStandard.SCREEN_WINDOW_NORMAL);
-//            playerStandard
+            playerStandard.setUp(material.getSrc(), JZVideoPlayerStandard.SCREEN_WINDOW_NORMAL);
             linearLayout.addView(playerStandard);
         }
         return linearLayout;

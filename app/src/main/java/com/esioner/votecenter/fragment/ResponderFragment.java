@@ -1,5 +1,6 @@
 package com.esioner.votecenter.fragment;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -8,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.esioner.votecenter.MainActivity;
 import com.esioner.votecenter.R;
 
 /**
@@ -18,6 +20,13 @@ import com.esioner.votecenter.R;
 
 public class ResponderFragment extends Fragment {
     private Button btnResponder;
+    private int projectId;
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        projectId = ((MainActivity) getActivity()).getProjectId();
+    }
 
     @Nullable
     @Override

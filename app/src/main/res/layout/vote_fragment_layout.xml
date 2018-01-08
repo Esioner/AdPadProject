@@ -85,6 +85,7 @@
             android:layout_margin="10dp"
             android:layout_marginRight="30dp"
             android:background="@drawable/bg_vote_button"
+            android:enabled="true"
             android:gravity="center"
             android:text="投票"
             android:textColor="#FFF"

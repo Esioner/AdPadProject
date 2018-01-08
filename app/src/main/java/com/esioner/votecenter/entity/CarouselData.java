@@ -12,7 +12,7 @@ import java.util.List;
 public class CarouselData {
     private int status;
     @SerializedName("data")
-    private List<Data> dataList;
+    private Data data;
     @SerializedName("numberPerPage")
     private int numberPerPage;
     @SerializedName("currentPage")
@@ -30,12 +30,12 @@ public class CarouselData {
         this.status = status;
     }
 
-    public List<Data> getDataList() {
-        return dataList;
+    public Data getData() {
+        return data;
     }
 
-    public void setDataList(List<Data> dataList) {
-        this.dataList = dataList;
+    public void setData(Data data) {
+        this.data = data;
     }
 
     public int getNumberPerPage() {
@@ -74,7 +74,6 @@ public class CarouselData {
     public String toString() {
         return "CarouselData{" +
                 "status=" + status +
-                ", dataList=" + dataList +
                 ", numberPerPage=" + numberPerPage +
                 ", currentPage=" + currentPage +
                 ", totalNumber=" + totalNumber +

@@ -9,7 +9,7 @@ public class _URL {
     /**
      * 轮播数据地址
      */
-    public static final String CAROUSEL_DATA_URL = "http://10.60.45.44:8089/adv/api/project/getProjectList";
+    public static final String CAROUSEL_DATA_URL = "http://116.62.228.3:8089/adv/api/project/getById?projectId=";
 
     /**
      * 投票列表地址

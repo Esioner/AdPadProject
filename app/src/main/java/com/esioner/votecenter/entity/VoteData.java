@@ -12,7 +12,7 @@ import java.util.List;
 public class VoteData {
     private int status;
     @SerializedName("data")
-    private List<Data> dataList;
+    private Data dataList;
     @SerializedName("numberPerPage")
     private int numberPerPage;
     @SerializedName("currentPage")
@@ -30,11 +30,11 @@ public class VoteData {
         this.status = status;
     }
 
-    public List<Data> getDataList() {
+    public Data getDataList() {
         return dataList;
     }
 
-    public void setDataList(List<Data> dataList) {
+    public void setDataList(Data dataList) {
         this.dataList = dataList;
     }
 
@@ -70,22 +70,16 @@ public class VoteData {
         this.totalPage = totalPage;
     }
 
-    @Override
-    public String toString() {
-        return "VoteData{" +
-                "status=" + status +
-                ", dataList=" + dataList +
-                ", numberPerPage=" + numberPerPage +
-                ", currentPage=" + currentPage +
-                ", totalNumber=" + totalNumber +
-                ", totalPage=" + totalPage +
-                '}';
-    }
-
     public class Data {
         private int id;
         private String name;
+        /**
+         * 共可以投票数
+         */
         private int allCanVoteNumber;
+        /**
+         * 每个可以投票数
+         */
         private int eachItemCanVoteNumber;
         private List<VoteItems> voteItemsList;
 
