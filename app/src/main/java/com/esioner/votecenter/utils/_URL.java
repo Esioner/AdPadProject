@@ -14,12 +14,12 @@ public class _URL {
     /**
      * 投票列表地址
      */
-    public static final String VOTE_DATA_URL = "http://10.60.45.44:8089/adv/api/vote/getVoteList";
+    public static final String VOTE_DATA_URL = "http://116.62.228.3:8089/adv/api/vote/getVoteList";
 
     /**
      * 获取某个某个投票项目
      * voteId=投票项目id（必须）
      */
-    public static final String VOTE_DETAIL_DATA_URL = "http://10.60.45.44:8089/adv/api/vote/getById?voteId=";
+    public static final String VOTE_DETAIL_DATA_URL = "http://116.62.228.3:8089/adv/api/vote/getById?voteId=";
 
 }

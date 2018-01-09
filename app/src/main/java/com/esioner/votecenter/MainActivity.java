@@ -1,12 +1,18 @@
 package com.esioner.votecenter;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 
 import com.esioner.votecenter.entity.CurrentPageData;
 import com.esioner.votecenter.entity.WebSocketData;
@@ -49,17 +55,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private WeChatWallFragment weChatWallFragment;
     private CarouselFragment carouselFragment;
     private WebSocket webSocket;
+    private Context mContext = this;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        showDialog();
         //初始化控件
         initView();
 
         //初始化 websocket
         initWebSocket();
 
+    }
+
+    private void showDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        builder.setView(LayoutInflater.from(mContext).inflate(R.layout.vote_detail_dialog_layout, null));
+        Dialog dialog = builder.create();
+        dialog.show();
+        Window window = dialog.getWindow();
+        WindowManager.LayoutParams lp = window.getAttributes();
+        //宽高可设置具体大小
+        lp.width = 418;
+        lp.height = 319;
+        dialog.getWindow().setAttributes(lp);
     }
 
 
@@ -158,6 +180,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClosing(WebSocket webSocket, int code, String reason) {
                 super.onClosing(webSocket, code, reason);
+                webSocket.close(code, reason);
+                Log.d(TAG, "onClosing: 已关闭");
                 Log.d(TAG, "onClosing: " + reason + code);
             }
 
@@ -169,7 +193,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-//                Log.e(TAG, );
+                Log.e(TAG, t.toString());
                 t.printStackTrace();
                 super.onFailure(webSocket, t, response);
             }
@@ -301,11 +325,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return projectId;
     }
 
+    /**
+     * 获取上下文环境
+     *
+     * @return
+     */
+    public Context getContext() {
+        return this;
+    }
+
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onStop() {
         if (webSocket != null) {
             webSocket.close(1000, null);
+            webSocket.cancel();
+            webSocket = null;
         }
+        Log.d(TAG, "onStop: 已关闭");
+        super.onStop();
     }
 }

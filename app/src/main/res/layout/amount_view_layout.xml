@@ -17,7 +17,7 @@
         android:layout_height="45px"
         android:gravity="center"
         android:text="0"
-        android:textColor="#fff"
+        android:textColor="#000"
         android:textSize="28px" />
 
     <Button

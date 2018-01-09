@@ -2,7 +2,7 @@ package com.esioner.votecenter.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Color;
+import android.graphics.Canvas;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.TypedValue;
@@ -65,29 +65,39 @@ public class AmountChangeView extends LinearLayout implements View.OnClickListen
         tvAmount.setLayoutParams(textParams);
         if (tvTextSize != 0) {
             tvAmount.setTextSize(TypedValue.COMPLEX_UNIT_PX, tvTextSize);
-//            tvAmount.setTextColor(Color.rgb(251, 81, 16));
         }
+        this.setAmount(amount);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_decrease:
-                if (amount > 1) {
-                    amount--;
-                    tvAmount.setText(amount + "");
-                }
+                amountDecrease();
                 break;
             case R.id.btn_increase:
-                amount++;
-                tvAmount.setText(amount + "");
+                amountIncrease();
                 break;
             default:
         }
-        if (amountChangeListener != null) {
-            amountChangeListener.onAmountChange(this, amount);
-        }
+    }
 
+    private void amountDecrease() {
+        if (amount > 1) {
+            amount--;
+            tvAmount.setText(amount + "");
+            if (amountChangeListener != null) {
+                amountChangeListener.onAmountDecrease(this, amount);
+            }
+        }
+    }
+
+    private void amountIncrease() {
+        amount++;
+        tvAmount.setText(amount + "");
+        if (amountChangeListener != null) {
+            amountChangeListener.onAmountDecrease(this, amount);
+        }
     }
 
     public int getAmount() {
@@ -100,6 +110,25 @@ public class AmountChangeView extends LinearLayout implements View.OnClickListen
 
 
     public interface OnAmountChangeListener {
-        void onAmountChange(View view, int amount);
+        /**
+         * 点击+
+         *
+         * @param view
+         * @param amount
+         */
+        void onAmountIncrease(View view, int amount);
+
+        /**
+         * 点击 -
+         *
+         * @param view
+         * @param amount
+         */
+        void onAmountDecrease(View view, int amount);
+    }
+
+    public void setAmount(int amount) {
+        this.amount = amount;
+        tvAmount.setText(amount + "");
     }
 }

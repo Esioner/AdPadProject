@@ -2,8 +2,10 @@ package com.esioner.votecenter.adapter;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,10 +14,12 @@ import android.widget.LinearLayout;
 
 import com.bumptech.glide.Glide;
 import com.esioner.votecenter.entity.CarouselData;
+import com.shuyu.gsyvideoplayer.listener.GSYVideoProgressListener;
+import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
+import com.shuyu.gsyvideoplayer.video.base.GSYVideoPlayer;
 
+import java.io.File;
 import java.util.List;
-
-import cn.jzvd.JZVideoPlayerStandard;
 
 /**
  * @author Esioner
@@ -23,6 +27,7 @@ import cn.jzvd.JZVideoPlayerStandard;
  */
 
 public class ViewPagerAdapter extends PagerAdapter {
+    private static final String TAG = "ViewPagerAdapter";
     private List<CarouselData.Data.Materials> materials;
     private Context mContext;
     private PlayListener playListener;
@@ -80,10 +85,21 @@ public class ViewPagerAdapter extends PagerAdapter {
             imageView.setLayoutParams(params);
             Glide.with(mContext).load(material.getSrc()).into(imageView);
             linearLayout.addView(imageView);
-        } else if (material.getType() == 1) {
-            JZVideoPlayerStandard playerStandard = new JZVideoPlayerStandard(mContext);
-            playerStandard.setUp(material.getSrc(), JZVideoPlayerStandard.SCREEN_WINDOW_NORMAL);
-            linearLayout.addView(playerStandard);
+        } else if (material.getType() == 2) {
+            String dirPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "vote" + File.separator + "advs";
+            File file = new File(dirPath);
+            GSYVideoPlayer player = new StandardGSYVideoPlayer(mContext);
+            player.setUp(material.getSrc(), true, file, "");
+            player.startPlayLogic();
+            player.setGSYVideoProgressListener(new GSYVideoProgressListener() {
+                @Override
+                public void onProgress(int progress, int secProgress, int currentPosition, int duration) {
+                    if (currentPosition / 1000 == duration / 1000) {
+                        playListener.playComplete(position);
+                    }
+                }
+            });
+            linearLayout.addView(player);
         }
         return linearLayout;
     }
@@ -95,8 +111,6 @@ public class ViewPagerAdapter extends PagerAdapter {
     public interface PlayListener {
         /**
          * 播放完成调用接口
-         *
-         * @param position
          */
         void playComplete(int position);
     }

@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/ll_root_view"
     android:layout_width="260px"
     android:layout_height="228px"
     android:layout_gravity="center"
+    android:background="@android:color/white"
     android:gravity="center"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="6px">
 
     <RelativeLayout
-        android:layout_width="240px"
+        android:layout_width="match_parent"
         android:layout_height="168px">
 
         <ImageView
@@ -17,7 +19,7 @@
             android:layout_height="match_parent"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
-            android:scaleType="centerCrop"
+            android:scaleType="centerInside"
             android:src="@drawable/user_header_image" />
 
         <TextView
@@ -33,7 +35,7 @@
     </RelativeLayout>
 
     <RelativeLayout
-        android:layout_width="240px"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <TextView
@@ -46,15 +48,27 @@
             android:textColor="#515151"
             android:textSize="22px" />
 
-        <com.esioner.votecenter.view.AmountChangeView xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:id="@+id/amount_view"
+        <LinearLayout
             android:layout_width="112px"
             android:layout_height="50px"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            app:btnTextSize="16px"
-            app:btnWidth="45px"
-            app:tvTextSize="22px"
-            app:tvWidth="20px" />
+            android:gravity="right|center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="票数："
+                android:textSize="22px" />
+            <TextView
+                android:id="@+id/tv_amount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:gravity="center"
+                android:text="0"
+                android:textSize="22px" />
+        </LinearLayout>
     </RelativeLayout>
 </LinearLayout>

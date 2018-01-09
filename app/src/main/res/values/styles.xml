@@ -9,4 +9,14 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="vote_item_style">
+        <item name="android:layout_width">41px</item>
+        <item name="android:layout_height">41px</item>
+        <item name="android:layout_marginBottom">5px</item>
+        <item name="android:layout_marginTop">5px</item>
+        <item name="android:background">#DCDCDC</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">#F97A34</item>
+        <item name="android:textSize">32px</item>
+    </style>
 </resources>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="418px"
+    android:layout_height="319px"
+    android:padding="10px">
+
+    <LinearLayout
+        android:layout_width="240px"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="240px"
+            android:layout_height="229px"
+            android:background="@drawable/user_header_image" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15px"
+            android:text="张及其"
+            android:textColor="#333"
+            android:textSize="22px" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="10px"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10px"
+            android:gravity="center"
+            android:text="选择投票数:"
+            android:textColor="#F97A34"
+            android:textSize="22px" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="15px"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_1"
+                    android:layout_width="41px"
+                    android:layout_height="41px"
+                    android:layout_marginBottom="6px"
+                    android:layout_marginTop="6px"
+                    android:background="#DCDCDC"
+                    android:gravity="center"
+                    android:text="1"
+                    android:textColor="#F97A34"
+                    android:textSize="32px" />
+
+                <TextView
+                    android:id="@+id/tv_3"
+                    style="@style/vote_item_style"
+                    android:text="3" />
+
+                <TextView
+                    android:id="@+id/tv_5"
+                    style="@style/vote_item_style"
+                    android:text="5" />
+
+                <TextView
+                    android:id="@+id/tv_7"
+                    style="@style/vote_item_style"
+                    android:text="7" />
+
+                <TextView
+                    android:id="@+id/tv_9"
+                    style="@style/vote_item_style"
+                    android:text="9" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_2"
+                    style="@style/vote_item_style"
+                    android:text="2" />
+
+                <TextView
+                    android:id="@+id/tv_4"
+                    style="@style/vote_item_style"
+                    android:text="4" />
+
+                <TextView
+                    android:id="@+id/tv_6"
+                    style="@style/vote_item_style"
+                    android:text="6" />
+
+                <TextView
+                    android:id="@+id/tv_8"
+                    style="@style/vote_item_style"
+                    android:text="8" />
+
+                <TextView
+                    android:id="@+id/tv_10"
+                    style="@style/vote_item_style"
+                    android:text="10" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+
+</LinearLayout>

@@ -82,6 +82,7 @@ public class CarouselFragment extends Fragment implements ViewPagerAdapter.PlayL
     //    };
     private Runnable mRunnable;
     private int projectId;
+    private Context mContext;
     private CarouselData.Data data;
     private List<CarouselData.Data.Materials> materialsList;
 
@@ -89,6 +90,8 @@ public class CarouselFragment extends Fragment implements ViewPagerAdapter.PlayL
     public void onAttach(Context context) {
         super.onAttach(context);
         projectId = ((MainActivity) getActivity()).getProjectId();
+        mContext = ((MainActivity) getActivity()).getContext();
+
     }
 
     @Nullable
@@ -106,12 +109,13 @@ public class CarouselFragment extends Fragment implements ViewPagerAdapter.PlayL
     }
 
     public void initView() {
-        ViewPagerAdapter adapter = new ViewPagerAdapter(materialsList, getActivity().getApplicationContext());
+        ViewPagerAdapter adapter = new ViewPagerAdapter(materialsList, mContext);
         adapter.setPlayListener(this);
         viewPager.setAdapter(adapter);
         MyPagerChangeListener listener = new MyPagerChangeListener();
         viewPager.addOnPageChangeListener(listener);
         viewPager.setCurrentItem(mPosition);
+        viewPager.setOffscreenPageLimit(0);
         listener.setPageSelect(mPosition);
     }
 
@@ -134,7 +138,7 @@ public class CarouselFragment extends Fragment implements ViewPagerAdapter.PlayL
                     for (CarouselData.Data.Materials material : materialsList) {
                         urls.add(material.getSrc());
                     }
-                    download(materialsList);
+//                    download(materialsList);
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -151,6 +155,7 @@ public class CarouselFragment extends Fragment implements ViewPagerAdapter.PlayL
     @Override
     public void playComplete(int position) {
 //        mHandler.sendEmptyMessage(SWITCH_PAGE_NEXT);
+        Log.d(TAG, "playComplete: 播放完成");
     }
 
 
@@ -225,7 +230,7 @@ public class CarouselFragment extends Fragment implements ViewPagerAdapter.PlayL
 
             @Override
             protected void error(BaseDownloadTask task, Throwable e) {
-
+                Log.e(TAG, "error: " + e);
             }
 
             @Override

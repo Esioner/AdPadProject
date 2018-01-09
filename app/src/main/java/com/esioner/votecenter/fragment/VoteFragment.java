@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
@@ -16,16 +17,19 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.esioner.votecenter.MainActivity;
 import com.esioner.votecenter.MyApplication;
 import com.esioner.votecenter.R;
 import com.esioner.votecenter.adapter.MyRecyclerViewAdapter;
+import com.esioner.votecenter.entity.BaseData;
 import com.esioner.votecenter.entity.VoteData;
 import com.esioner.votecenter.entity.VoteDetailData;
 import com.esioner.votecenter.service.DownloadService;
 import com.esioner.votecenter.utils.OkHttpUtils;
+import com.esioner.votecenter.utils.Utility;
 import com.esioner.votecenter.utils._URL;
 import com.google.gson.Gson;
 
@@ -65,12 +69,16 @@ public class VoteFragment extends Fragment {
     private TextView tvAllVoteNum;
     private TextView tvEachVoteNum;
     private TextView tvVote;
+    private Context mContext;
+    private int voteId;
 
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         projectId = ((MainActivity) getActivity()).getProjectId();
+        mContext = ((MainActivity) getActivity()).getContext();
+        Log.d(TAG, "onAttach: " + projectId);
     }
 
     @Nullable
@@ -91,16 +99,43 @@ public class VoteFragment extends Fragment {
     }
 
     private void initView(VoteDetailData detailData) {
-        MyRecyclerViewAdapter adapter = new MyRecyclerViewAdapter(voteItems);
-        GridLayoutManager manager = new GridLayoutManager(getContext(), 3);
-        rvPersonInfo.addItemDecoration(new SpaceItemDecoration(15));
+        final MyRecyclerViewAdapter adapter = new MyRecyclerViewAdapter(voteItems, mContext);
+        GridLayoutManager manager = new GridLayoutManager(mContext, 3);
+        rvPersonInfo.addItemDecoration(new SpaceItemDecoration());
         rvPersonInfo.setLayoutManager(manager);
         rvPersonInfo.setAdapter(adapter);
         tvAllVoteNum.setText(detailData.getData().getAllCanVoteNumber() + "");
         tvEachVoteNum.setText(detailData.getData().getEachItemCanVoteNumber() + "");
+        //投票按钮的点击事件
         tvVote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d(TAG, "onClick: " + voteId);
+                final String jsonData = adapter.getVoteData();
+                OkHttpUtils.getInstance().post("http://116.62.228.3:8089/adv/api/vote/" + voteId + "/voteItem/vote?mac=" + Utility.getMacAdress(), jsonData, new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        Log.e(TAG, "onFailure: " + e.toString());
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        String result = response.body().string();
+                        Log.d(TAG, "onResponse: " + result);
+                        BaseData data = new Gson().fromJson(result, BaseData.class);
+                        if (data.getStatus() == 0) {
+                            //投票成功
+                            Looper.prepare();
+                            Toast.makeText(mContext, "投票成功", Toast.LENGTH_SHORT).show();
+                            Looper.loop();
+                        } else if (data.getStatus() == 1) {
+                            //投票失败
+                            Looper.prepare();
+                            Toast.makeText(mContext, data.getData(), Toast.LENGTH_SHORT).show();
+                            Looper.loop();
+                        }
+                    }
+                });
             }
         });
     }
@@ -122,6 +157,8 @@ public class VoteFragment extends Fragment {
 
                 final VoteDetailData detailData = new Gson().fromJson(jsonBody, VoteDetailData.class);
                 if (detailData.getData() != null) {
+                    voteId = detailData.getData().getId();
+                    Log.d(TAG, "voteId: " + voteId);
                     voteItems = detailData.getData().getVoteItemsList();
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
@@ -138,19 +175,21 @@ public class VoteFragment extends Fragment {
      * 设置RecyclerView 子控件间距
      */
     class SpaceItemDecoration extends RecyclerView.ItemDecoration {
-        int mSpace;
+        int mSpace = 10;
 
         @Override
         public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
             super.getItemOffsets(outRect, view, parent, state);
-            outRect.left = mSpace;
-            outRect.right = mSpace;
-            outRect.bottom = mSpace;
-            outRect.top = mSpace;
-        }
+            int position = parent.getChildLayoutPosition(view);
+            if (position != 0 && position != 3) {
+                outRect.left = mSpace;
+            } else {
 
-        public SpaceItemDecoration(int space) {
-            this.mSpace = space;
+            }
+            if (position != 2 && position != 5) {
+                outRect.right = mSpace;
+            }
+            outRect.bottom = outRect.top = 8;
         }
     }
 
