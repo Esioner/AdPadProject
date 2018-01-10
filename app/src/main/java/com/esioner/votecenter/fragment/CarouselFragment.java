@@ -2,9 +2,6 @@ package com.esioner.votecenter.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
@@ -17,19 +14,15 @@ import com.esioner.votecenter.MainActivity;
 import com.esioner.votecenter.R;
 import com.esioner.votecenter.adapter.ViewPagerAdapter;
 import com.esioner.votecenter.entity.CarouselData;
-import com.esioner.votecenter.utils.Constant;
 import com.esioner.votecenter.utils.OkHttpUtils;
 import com.esioner.votecenter.utils._URL;
 import com.google.gson.Gson;
-import com.liulishuo.filedownloader.BaseDownloadTask;
-import com.liulishuo.filedownloader.FileDownloadListener;
-import com.liulishuo.filedownloader.FileDownloadQueueSet;
-import com.liulishuo.filedownloader.FileDownloader;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -46,52 +39,28 @@ public class CarouselFragment extends Fragment implements ViewPagerAdapter.PlayL
     private ViewPager viewPager;
     private int mPosition = 0;
 
-    private long duration = 2000;
 
     public static final int SWITCH_PAGE_NEXT = 1;
     public static final int SWITCH_PAGE_PREVIOUS = 0;
     private static final int GET_DATA_SUCCESS = 2;
 
-//    private final Handler mHandler = new Handler() {
-//        @Override
-//        public void handleMessage(Message msg) {
-//            switch (msg.what) {
-////                case SWITCH_PAGE_NEXT:
-////                    if (mPosition < materialsList.size() - 1) {
-////                        mPosition++;
-////                    } else {
-////                        mPosition = 0;
-////                    }
-////                    break;
-////                case SWITCH_PAGE_PREVIOUS:
-////                    if (mPosition > 0) {
-////                        mPosition--;
-////
-////                    }
-////                    break;
-////                case GET_DATA_SUCCESS:
-////                    initView();
-////                    break;
-//                default:
-//                    break;
-//            }
-//            Log.d("handleMessage", "handleMessage: " + mPosition);
-//            viewPager.setCurrentItem(mPosition);
-//        }
-
-    //    };
-    private Runnable mRunnable;
+    /**
+     * 项目id
+     */
     private int projectId;
+
     private Context mContext;
     private CarouselData.Data data;
     private List<CarouselData.Data.Materials> materialsList;
+    private TimerTask mTask;
+    private Timer mTimer;
+    private ViewPagerAdapter mAdapter;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         projectId = ((MainActivity) getActivity()).getProjectId();
         mContext = ((MainActivity) getActivity()).getContext();
-
     }
 
     @Nullable
@@ -109,18 +78,18 @@ public class CarouselFragment extends Fragment implements ViewPagerAdapter.PlayL
     }
 
     public void initView() {
-        ViewPagerAdapter adapter = new ViewPagerAdapter(materialsList, mContext);
-        adapter.setPlayListener(this);
-        viewPager.setAdapter(adapter);
+        mAdapter = new ViewPagerAdapter(materialsList, mContext);
+        mAdapter.setPlayListener(this);
+        viewPager.setAdapter(mAdapter);
         MyPagerChangeListener listener = new MyPagerChangeListener();
         viewPager.addOnPageChangeListener(listener);
         viewPager.setCurrentItem(mPosition);
-        viewPager.setOffscreenPageLimit(0);
+//        viewPager.setOffscreenPageLimit(0);
         listener.setPageSelect(mPosition);
     }
 
     private void initData() {
-        OkHttpUtils.getInstance().getData(_URL.CAROUSEL_DATA_URL + projectId, new Callback() {
+        OkHttpUtils.getInstance().getDataAsyn(_URL.CAROUSEL_DATA_URL + projectId, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
 
@@ -130,6 +99,7 @@ public class CarouselFragment extends Fragment implements ViewPagerAdapter.PlayL
             public void onResponse(Call call, Response response) throws IOException {
                 String jsonBody = response.body().string();
                 Log.d(TAG, jsonBody);
+                Log.d(TAG, "projectId: " + projectId);
                 CarouselData carouselData = new Gson().fromJson(jsonBody, CarouselData.class);
                 if (carouselData.getStatus() == 0) {
                     data = carouselData.getData();
@@ -151,11 +121,15 @@ public class CarouselFragment extends Fragment implements ViewPagerAdapter.PlayL
         });
     }
 
-
+    /**
+     * 视频播放完成的回调
+     *
+     * @param position
+     */
     @Override
     public void playComplete(int position) {
-//        mHandler.sendEmptyMessage(SWITCH_PAGE_NEXT);
         Log.d(TAG, "playComplete: 播放完成");
+        switchNextPage();
     }
 
 
@@ -164,10 +138,12 @@ public class CarouselFragment extends Fragment implements ViewPagerAdapter.PlayL
         @Override
         public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
             //如果滑动就重新计时
-//            mHandler.removeCallbacks(mRunnable);
+            removeTimer();
             mPosition = position;
-            if (materialsList.get(position).getTime() != 0) {
-                startCountdown(materialsList.get(position).getTime());
+            if (materialsList.get(position).getType() == 0 || materialsList.get(position).getType() == 1) {
+                if (materialsList.get(position).getTime() != 0) {
+                    startCountdown(materialsList.get(position).getTime());
+                }
             }
         }
 
@@ -176,8 +152,10 @@ public class CarouselFragment extends Fragment implements ViewPagerAdapter.PlayL
             mPosition = position;
             Log.d("MyPagerChangeListener", "onPageSelected: " + position);
 //            如果播放图片开启计时器
-            if (materialsList.get(position).getType() == 0) {
+            if (materialsList.get(position).getType() == 0 || materialsList.get(position).getType() == 1) {
                 startCountdown(materialsList.get(position).getTime());
+            } else if (materialsList.get(position).getType() == 2) {
+                mAdapter.startPlay();
             }
         }
 
@@ -191,71 +169,77 @@ public class CarouselFragment extends Fragment implements ViewPagerAdapter.PlayL
 
     }
 
+    /**
+     * 开始计时
+     *
+     * @param duration
+     */
     private void startCountdown(long duration) {
-        mRunnable = new Runnable() {
+//        mRunnable = new Runnable() {
+//            @Override
+//            public void run() {
+//                mHandler.sendEmptyMessage(SWITCH_PAGE_NEXT);
+//            }
+//        };
+//        mHandler.postDelayed(mRunnable, duration);
+        Log.d(TAG, "startCountdown: " + duration);
+        removeTimer();
+        mTask = new TimerTask() {
             @Override
             public void run() {
-//                mHandler.sendEmptyMessage(SWITCH_PAGE_NEXT);
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        switchNextPage();
+                    }
+                });
             }
         };
-//        mHandler.postDelayed(mRunnable, duration);
+        mTimer = new Timer();
+        mTimer.schedule(mTask, duration * 1000);
     }
 
     /**
-     * 下载
-     *
-     * @param materials
+     * 取消计时
      */
-    public void download(List<CarouselData.Data.Materials> materials) {
-        final FileDownloadQueueSet queueSet = new FileDownloadQueueSet(new FileDownloadListener() {
-            @Override
-            protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-
-            }
-
-            @Override
-            protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-                Log.d(TAG, "progress: " + soFarBytes);
-            }
-
-            @Override
-            protected void completed(BaseDownloadTask task) {
-                Log.d(TAG, "completed: ");
-            }
-
-            @Override
-            protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-
-            }
-
-            @Override
-            protected void error(BaseDownloadTask task, Throwable e) {
-                Log.e(TAG, "error: " + e);
-            }
-
-            @Override
-            protected void warn(BaseDownloadTask task) {
-
-            }
-        });
-
-        final List<BaseDownloadTask> tasks = new ArrayList<>();
-        BaseDownloadTask task;
-        String dirPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "vote" + File.separator + "advs";
-        for (int i = 0; i < materials.size(); i++) {
-            CarouselData.Data.Materials material = materials.get(i);
-            task = FileDownloader.getImpl().create(material.getSrc()).setTag(i + 1);
-            if (material.getType() == 2) {
-                task.setPath(dirPath + File.separator + material.getName() + ".ogg");
-            } else if (material.getType() == 0) {
-                task.setPath(dirPath + File.separator + material.getName() + ".png");
-            }
-            tasks.add(task);
+    private void removeTimer() {
+        if (mTask != null) {
+            mTask.cancel();
+            mTask = null;
         }
-        queueSet.disableCallbackProgressTimes();
-        queueSet.setAutoRetryTimes(1);
-        // 并行执行该任务队列
-        queueSet.downloadTogether(tasks);
-        queueSet.start();
+        if (mTimer != null) {
+            mTimer.cancel();
+            mTimer = null;
+        }
+    }
+
+    /**
+     * 切换下一个页面
+     */
+    private void switchNextPage() {
+        if (mPosition < materialsList.size() - 1) {
+            mPosition++;
+        } else {
+            mPosition = 0;
+        }
+        Log.d(TAG, "switchNextPage: " + mPosition);
+        viewPager.setCurrentItem(mPosition);
+    }
+
+    /**
+     * 切换上一个页面
+     */
+    private void switchPreviousPage() {
+        if (mPosition > 0) {
+            mPosition--;
+        }
+        Log.d(TAG, "switchPreviousPage: " + mPosition);
+        viewPager.setCurrentItem(mPosition);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        removeTimer();
     }
 }

@@ -5,14 +5,15 @@
     android:layout_gravity="center"
     android:background="#FFF"
     android:gravity="center"
-    android:paddingTop="5px"
-    android:paddingBottom="5px">
+    android:paddingBottom="5px"
+    android:paddingTop="5px">
 
     <ImageView
-        android:layout_marginLeft="14px"
+        android:id="@+id/iv_we_chat_item_header_image"
         android:layout_width="68px"
         android:layout_height="68px"
         android:layout_gravity="center"
+        android:layout_marginLeft="14px"
         android:background="@drawable/we_chat_header" />
 
     <LinearLayout
@@ -22,6 +23,7 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/tv_we_chat_item_name"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
@@ -31,6 +33,7 @@
             android:textSize="22px" />
 
         <TextView
+            android:id="@+id/tv_we_chat_item_content"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"

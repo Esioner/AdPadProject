@@ -1,8 +1,6 @@
 package com.esioner.votecenter.fragment;
 
-import android.app.IntentService;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Looper;
@@ -14,29 +12,20 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
 import com.esioner.votecenter.MainActivity;
-import com.esioner.votecenter.MyApplication;
 import com.esioner.votecenter.R;
 import com.esioner.votecenter.adapter.MyRecyclerViewAdapter;
 import com.esioner.votecenter.entity.BaseData;
-import com.esioner.votecenter.entity.VoteData;
 import com.esioner.votecenter.entity.VoteDetailData;
-import com.esioner.votecenter.service.DownloadService;
 import com.esioner.votecenter.utils.OkHttpUtils;
 import com.esioner.votecenter.utils.Utility;
 import com.esioner.votecenter.utils._URL;
 import com.google.gson.Gson;
 
-import org.w3c.dom.Text;
-
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import okhttp3.Call;
@@ -112,7 +101,7 @@ public class VoteFragment extends Fragment {
             public void onClick(View v) {
                 Log.d(TAG, "onClick: " + voteId);
                 final String jsonData = adapter.getVoteData();
-                OkHttpUtils.getInstance().post("http://116.62.228.3:8089/adv/api/vote/" + voteId + "/voteItem/vote?mac=" + Utility.getMacAdress(), jsonData, new Callback() {
+                OkHttpUtils.getInstance().postVoteData("http://116.62.228.3:8089/adv/api/vote/" + voteId + "/voteItem/vote?mac=" + Utility.getMacAdress(), jsonData, new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
                         Log.e(TAG, "onFailure: " + e.toString());
@@ -144,7 +133,7 @@ public class VoteFragment extends Fragment {
         /**
          * 获取投票列表
          */
-        OkHttpUtils.getInstance().getData(_URL.VOTE_DETAIL_DATA_URL + projectId, new Callback() {
+        OkHttpUtils.getInstance().getDataAsyn(_URL.VOTE_DETAIL_DATA_URL + projectId, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
 

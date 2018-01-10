@@ -1,44 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ll_we_chat_root_view"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/background"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
+    <ImageView
+        android:id="@+id/iv_we_chat_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:background="@drawable/background" />
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/rv_wechat_wall"
-        android:layout_width="750px"
-        android:layout_height="480px"
-        android:layout_gravity="center"
-        android:layout_marginBottom="10px"
-        android:layout_marginTop="20px">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-    </android.support.v7.widget.RecyclerView>
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rv_wechat_wall"
+            android:layout_width="750px"
+            android:layout_height="480px"
+            android:layout_gravity="center"
+            android:layout_marginBottom="10px"
+            android:layout_marginTop="20px">
 
-    <RelativeLayout
-        android:layout_width="750px"
-        android:layout_height="68px"
-        android:layout_gravity="center"
-        android:layout_marginBottom="20px"
-        android:layout_marginTop="10px">
+        </android.support.v7.widget.RecyclerView>
 
-        <EditText
-            android:layout_width="640px"
+        <RelativeLayout
+            android:layout_width="750px"
             android:layout_height="68px"
-            android:paddingLeft="14px"
-            android:layout_centerVertical="true"
-            android:background="#FFF"
-            android:hint="请输入内容" />
+            android:layout_gravity="center"
+            android:layout_marginBottom="20px"
+            android:layout_marginTop="10px">
 
-        <Button
-            android:layout_width="100px"
-            android:layout_height="68px"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:textSize="22px"
-            android:background="#FFF"
-            android:text="发送" />
+            <EditText
+                android:id="@+id/et_input"
+                android:layout_width="640px"
+                android:layout_height="68px"
+                android:layout_centerVertical="true"
+                android:background="#FFF"
+                android:hint="请输入内容"
+                android:paddingLeft="14px"
+                android:saveEnabled="false" />
 
-    </RelativeLayout>
-</LinearLayout>
+            <Button
+                android:id="@+id/btn_send_barrage"
+                android:layout_width="100px"
+                android:layout_height="68px"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:background="#FFF"
+                android:text="发送"
+                android:textSize="22px" />
+
+        </RelativeLayout>
+    </LinearLayout>
+</RelativeLayout>

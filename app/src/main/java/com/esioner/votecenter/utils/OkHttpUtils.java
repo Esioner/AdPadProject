@@ -46,11 +46,25 @@ public class OkHttpUtils {
      * @param url
      * @param callback
      */
-    public void getData(String url, Callback callback) {
+    public void getDataAsyn(String url, Callback callback) {
         Request request = new Request.Builder()
                 .url(url)
                 .build();
         mClient.newCall(request).enqueue(callback);
+    }
+
+    /**
+     * 同步获取
+     * @param url
+     * @return
+     * @throws IOException
+     */
+    public Response getDataSync(String url) throws IOException {
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+        return mClient.newCall(request).execute();
+
     }
 
     /**
@@ -71,12 +85,30 @@ public class OkHttpUtils {
         return response;
     }
 
-    public void post(String url, String jsonData, Callback callback) {
+    public void postVoteData(String url, String jsonData, Callback callback) {
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonData);
         Request request = new Request.Builder()
                 .url(url)
                 .post(requestBody)
                 .build();
         mClient.newCall(request).enqueue(callback);
+    }
+
+    /**
+     * 发送弹幕
+     *
+     * @param url
+     * @param content
+     */
+    public Response postBarrage(String url, String content) throws IOException {
+        RequestBody requestBody = new FormBody.Builder()
+                .add("mac", Utility.getMacAdress())
+                .add("content", content)
+                .build();
+        Request request = new Request.Builder()
+                .url(url)
+                .post(requestBody)
+                .build();
+        return mClient.newCall(request).execute();
     }
 }

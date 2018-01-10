@@ -14,6 +14,8 @@ import android.widget.LinearLayout;
 
 import com.bumptech.glide.Glide;
 import com.esioner.votecenter.entity.CarouselData;
+import com.esioner.votecenter.view.EmptyVidePlayer;
+import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.listener.GSYVideoProgressListener;
 import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoPlayer;
@@ -31,6 +33,7 @@ public class ViewPagerAdapter extends PagerAdapter {
     private List<CarouselData.Data.Materials> materials;
     private Context mContext;
     private PlayListener playListener;
+    private GSYVideoPlayer player;
 
     public ViewPagerAdapter(List<CarouselData.Data.Materials> materials, Context context) {
         this.materials = materials;
@@ -88,20 +91,25 @@ public class ViewPagerAdapter extends PagerAdapter {
         } else if (material.getType() == 2) {
             String dirPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "vote" + File.separator + "advs";
             File file = new File(dirPath);
-            GSYVideoPlayer player = new StandardGSYVideoPlayer(mContext);
+            player = new EmptyVidePlayer(mContext);
+            player.initUIState();
             player.setUp(material.getSrc(), true, file, "");
-            player.startPlayLogic();
             player.setGSYVideoProgressListener(new GSYVideoProgressListener() {
                 @Override
                 public void onProgress(int progress, int secProgress, int currentPosition, int duration) {
                     if (currentPosition / 1000 == duration / 1000) {
                         playListener.playComplete(position);
+//                        player.release();
                     }
                 }
             });
             linearLayout.addView(player);
         }
         return linearLayout;
+    }
+
+    public void startPlay() {
+        player.startPlayLogic();
     }
 
     public void setPlayListener(PlayListener playListener) {
@@ -113,5 +121,6 @@ public class ViewPagerAdapter extends PagerAdapter {
          * 播放完成调用接口
          */
         void playComplete(int position);
+
     }
 }

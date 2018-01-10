@@ -13,18 +13,31 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.esioner.votecenter.entity.CurrentPageData;
+import com.esioner.votecenter.entity.WeChatData;
+import com.esioner.votecenter.entity.WeChatDetailData;
+import com.esioner.votecenter.entity.WeChatResultData;
 import com.esioner.votecenter.entity.WebSocketData;
 import com.esioner.votecenter.fragment.CarouselFragment;
 import com.esioner.votecenter.fragment.ResponderFragment;
 import com.esioner.votecenter.fragment.ResponderResultFragment;
+import com.esioner.votecenter.fragment.ShowPictureFragment;
 import com.esioner.votecenter.fragment.VoteFragment;
 import com.esioner.votecenter.fragment.WeChatWallFragment;
 import com.esioner.votecenter.utils.Utility;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
@@ -46,6 +59,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int VOTE_FRAGMENT_ID = 2;
     private static final int WE_CHAT_WALL_FRAGMENT_ID = 3;
     private static final int CAROUSEL_FRAGMENT_ID = 4;
+    private static final int SHOW_PICTURE_ID = 5;
+
 
     private int projectId;
 
@@ -56,19 +71,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private CarouselFragment carouselFragment;
     private WebSocket webSocket;
     private Context mContext = this;
+    private ShowPictureFragment showPictureFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        showDialog();
         //初始化控件
         initView();
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
         //初始化 websocket
         initWebSocket();
-
     }
 
     private void showDialog() {
@@ -84,7 +103,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dialog.getWindow().setAttributes(lp);
     }
 
-
+    /**
+     * 初始化控件
+     */
     private void initView() {
         findViewById(R.id.btn_0).setOnClickListener(this);
         findViewById(R.id.btn_1).setOnClickListener(this);
@@ -101,74 +122,118 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onOpen(WebSocket webSocket, Response response) {
                 super.onOpen(webSocket, response);
+                try {
+                    Log.d(TAG, "onOpen: " + response.body().string());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
-            public void onMessage(WebSocket webSocket, String text) {
-                Log.d(TAG, "onMessage: " + text);
-                WebSocketData data = new Gson().fromJson(text, WebSocketData.class);
-                projectId = data.getData().getProjectId();
-                Log.d(TAG, "projectId = " + projectId);
-                switch (data.getCode()) {
-                    //切换页面
-                    case 2:
-                        int code = data.getData().getPage();
-                        switch (code) {
-                            //未知页面
-                            case 0:
-                                break;
-                            //轮播页面
-                            case 1:
-                                switchFragment(CAROUSEL_FRAGMENT_ID);
-                                break;
-                            //投票页面
-                            case 2:
-                                switchFragment(VOTE_FRAGMENT_ID);
-                                break;
-                            //抢答页面
-                            case 3:
-                                switchFragment(RESPONDER_FRAGMENT_ID);
-                                break;
-                            //微信墙页面
-                            case 4:
-                                switchFragment(WE_CHAT_WALL_FRAGMENT_ID);
-                                break;
-                            default:
-                                break;
+            public void onMessage(WebSocket webSocket, final String text) {
+                try {
+                    Log.d(TAG, "onMessage: " + text);
+                    //获取 code
+                    JSONObject object = new JSONObject(text);
+                    int code = object.getInt("code");
+                    Log.d(TAG, "projectId = " + projectId);
+                    WebSocketData data = null;
+                    if (code != 9) {
+                        data = new Gson().fromJson(text, WebSocketData.class);
+                        if (data.getData() != null) {
+                            if (data.getData().getPage() == 1 || data.getData().getPage() == 2) {
+                                projectId = data.getData().getProjectId();
+                                Log.d(TAG, "onMessage: " + projectId);
+                            }
                         }
-                        //将当前页面信息封装成 json
-                        CurrentPageData currentPageData = new CurrentPageData();
-                        currentPageData.setCode(1);
-                        currentPageData.setData(currentPageData.new Data(macAddress, code));
-                        String sendJson = new Gson().toJson(currentPageData);
-                        //跳转之后需要向服务器发送当前页面数据
-                        webSocket.send(sendJson);
-                        break;
-                    //开始抢答,使抢答按钮变得可点击
-                    case 5:
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                startResponder();
+                    }
+                    switch (code) {
+                        //切换页面
+                        case 2:
+                            int pageCode = data.getData().getPage();
+                            switch (pageCode) {
+                                //未知页面
+                                case 0:
+                                    break;
+                                //轮播页面
+                                case 1:
+                                    if (projectId != -1) {
+                                        switchFragment(CAROUSEL_FRAGMENT_ID);
+                                    } else {
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Toast.makeText(mContext, "ProjectId:" + projectId, Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                                    }
+                                    break;
+                                //投票页面
+                                case 2:
+                                    switchFragment(VOTE_FRAGMENT_ID);
+                                    break;
+                                //抢答页面
+                                case 3:
+                                    switchFragment(RESPONDER_FRAGMENT_ID);
+                                    break;
+                                //微信墙页面
+                                case 4:
+                                    switchFragment(WE_CHAT_WALL_FRAGMENT_ID);
+                                    break;
+                                case 5:
+                                    switchFragment(SHOW_PICTURE_ID);
+                                    break;
+                                default:
+                                    break;
                             }
-                        });
-                        break;
-                    //停止抢答，使按钮变得不可点击
-                    case 6:
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                stopResponder();
-                            }
-                        });
-                        break;
-                    //抢答结果广播
-                    case 8:
-                        switchFragment(RESPONDER_RESULT_FRAGMENT_ID);
-                        resultFragment.setResult(data.getData().getName());
-                        break;
-                    default:
-                        break;
+                            //将当前页面信息封装成 json
+                            CurrentPageData currentPageData = new CurrentPageData();
+                            currentPageData.setCode(1);
+                            currentPageData.setData(currentPageData.new Data(macAddress, pageCode));
+                            String sendJson = new Gson().toJson(currentPageData);
+                            //跳转之后需要向服务器发送当前页面数据
+                            webSocket.send(sendJson);
+                            break;
+                        //开始抢答,使抢答按钮变得可点击
+                        case 5:
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    startResponder();
+                                }
+                            });
+                            break;
+                        //停止抢答，使按钮变得不可点击
+                        case 6:
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    stopResponder();
+                                }
+                            });
+                            break;
+                        //抢答结果广播
+                        case 8:
+                            switchFragment(RESPONDER_RESULT_FRAGMENT_ID);
+                            /**
+                             * 设置抢答结果
+                             */
+                            resultFragment.setResult(data.getData().getName());
+                            break;
+                        //刷新弹幕消息
+                        case 9:
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    refreshWeChatData(text);
+                                }
+                            });
+                            break;
+                        default:
+                            break;
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
             }
 
@@ -226,7 +291,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 switchFragment(3);
                 break;
             case R.id.btn_4:
-                switchFragment(4);
+                switchFragment(5);
                 break;
             default:
         }
@@ -274,6 +339,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 carouselFragment = new CarouselFragment();
                 transactionFragment(carouselFragment);
                 break;
+            case SHOW_PICTURE_ID:
+                if (showPictureFragment != null) {
+                    showPictureFragment = null;
+                }
+                showPictureFragment = new ShowPictureFragment();
+                transactionFragment(showPictureFragment);
+                break;
             default:
         }
     }
@@ -288,9 +360,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         FragmentManager manager = getSupportFragmentManager();
         //fragment 事务
         FragmentTransaction transaction = manager.beginTransaction();
-        transaction.addToBackStack(null);
+//        transaction.addToBackStack(null);
         transaction.replace(R.id.frame_layout, fragment);
         transaction.commit();
+    }
+
+    /**
+     * 刷新微信墙数据
+     */
+    public void refreshWeChatData(String json) {
+        Gson gson = new Gson();
+        WeChatData chatData = gson.fromJson(json, WeChatData.class);
+        List<WeChatDetailData> weChatDataList = chatData.getDatas();
+        if (weChatWallFragment != null) {
+            weChatWallFragment.initData(weChatDataList);
+        }
+    }
+
+    /**
+     * 传递 projectId
+     * 只有投票和轮播需要用到
+     *
+     * @return
+     */
+    public int getProjectId() {
+        return projectId;
     }
 
     /**
@@ -311,22 +405,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-    }
-
     /**
-     * 获取 projectId
-     *
-     * @return
-     */
-    public int getProjectId() {
-        return projectId;
-    }
-
-    /**
-     * 获取上下文环境
+     * 给 Fragment 传递上下文环境
      *
      * @return
      */
@@ -335,13 +415,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    protected void onStop() {
-        if (webSocket != null) {
-            webSocket.close(1000, null);
-            webSocket.cancel();
-            webSocket = null;
-        }
+    protected void onPause() {
+        webSocket.close(1000, "软甲退出");
         Log.d(TAG, "onStop: 已关闭");
-        super.onStop();
+        super.onPause();
     }
 }
