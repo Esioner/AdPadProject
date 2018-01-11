@@ -26,6 +26,7 @@ import java.util.TimerTask;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.OkHttpClient;
 import okhttp3.Response;
 
 /**
@@ -89,36 +90,37 @@ public class CarouselFragment extends Fragment implements ViewPagerAdapter.PlayL
     }
 
     private void initData() {
-        OkHttpUtils.getInstance().getDataAsyn(_URL.CAROUSEL_DATA_URL + projectId, new Callback() {
+        new Thread(new Runnable() {
             @Override
-            public void onFailure(Call call, IOException e) {
-
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String jsonBody = response.body().string();
-                Log.d(TAG, jsonBody);
-                Log.d(TAG, "projectId: " + projectId);
-                CarouselData carouselData = new Gson().fromJson(jsonBody, CarouselData.class);
-                if (carouselData.getStatus() == 0) {
-                    data = carouselData.getData();
-                    materialsList = data.getMaterials();
-                    List<String> urls = new ArrayList<>();
-                    for (CarouselData.Data.Materials material : materialsList) {
-                        urls.add(material.getSrc());
-                    }
-//                    download(materialsList);
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            initView();
+            public void run() {
+                try {
+                    Log.d(TAG, _URL.CAROUSEL_DATA_URL + projectId);
+                    Response response = OkHttpUtils.getInstance().getDataSync(_URL.CAROUSEL_DATA_URL + projectId);
+                    String jsonBody = response.body().string();
+                    Log.d(TAG, jsonBody);
+                    Log.d(TAG, "projectId: " + projectId);
+                    CarouselData carouselData = new Gson().fromJson(jsonBody, CarouselData.class);
+                    if (carouselData.getStatus() == 0) {
+                        data = carouselData.getData();
+                        materialsList = data.getMaterials();
+                        List<String> urls = new ArrayList<>();
+                        for (CarouselData.Data.Materials material : materialsList) {
+                            urls.add(material.getSrc());
                         }
-                    });
+//                    download(materialsList);
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                initView();
+                            }
+                        });
 //                    mHandler.sendEmptyMessage(GET_DATA_SUCCESS);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
-        });
+        }).start();
     }
 
     /**

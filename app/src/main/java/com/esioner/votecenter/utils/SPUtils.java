@@ -11,6 +11,7 @@ import com.esioner.votecenter.MyApplication;
  */
 
 public class SPUtils {
+    public static final String VERSION_ID = "version_id";
     private SharedPreferences sp;
     private static SPUtils spUtils;
 
@@ -50,5 +51,25 @@ public class SPUtils {
      */
     public String getString(String key) {
         return sp.getString(key, "");
+    }
+
+    /**
+     * 写入数据
+     *
+     * @param key
+     * @param value
+     */
+    public void putInt(String key, int value) {
+        sp.edit().putInt(key, value).apply();
+    }
+
+    /**
+     * 读取数据
+     *
+     * @param key
+     * @return
+     */
+    public int getInt(String key) {
+        return sp.getInt(key, -1);
     }
 }

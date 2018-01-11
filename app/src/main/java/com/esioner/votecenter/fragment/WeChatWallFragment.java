@@ -72,6 +72,7 @@ public class WeChatWallFragment extends Fragment implements View.OnClickListener
     private Button btnSendBarrage;
     private InputMethodManager imm;
     private ImageView iv;
+    private Thread bgThread;
 
     @Override
     public void onAttach(Context context) {
@@ -98,7 +99,8 @@ public class WeChatWallFragment extends Fragment implements View.OnClickListener
      * 初始化背景图片
      */
     private void initBackground() {
-        new Thread(new Runnable() {
+        //type": 2 抢答终端背景图片"
+        bgThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -121,7 +123,14 @@ public class WeChatWallFragment extends Fragment implements View.OnClickListener
                     e.printStackTrace();
                 }
             }
-        }).start();
+        });
+        bgThread.start();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        bgThread.destroy();
     }
 
     /**

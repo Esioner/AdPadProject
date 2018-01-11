@@ -3,7 +3,6 @@ package com.esioner.votecenter.fragment;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -44,13 +43,14 @@ public class ResponderResultFragment extends Fragment {
 
     private TextView tvResult;
     private Context mContext;
-    private RelativeLayout rlRootView;
     private ImageView iv;
+    private String result;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         mContext = ((MainActivity) getActivity()).getContext();
+        result = ((MainActivity) getActivity()).getResponderResult();
     }
 
     @Nullable
@@ -58,8 +58,8 @@ public class ResponderResultFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.responsder_result_fragment_layout, null);
         tvResult = view.findViewById(R.id.tv_result);
-        rlRootView = view.findViewById(R.id.rl_responder_result_root_view);
         iv = view.findViewById(R.id.iv_responder_result);
+        tvResult.setText(result);
         initBackground();
         return view;
     }
@@ -79,12 +79,6 @@ public class ResponderResultFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-//                            SimpleTarget<Drawable> simpleTarget = new SimpleTarget<Drawable>() {
-//                                @Override
-//                                public void onResourceReady(Drawable resource, Transition<? super Drawable> transition) {
-//                                    rlRootView.setBackground(resource);
-//                                }
-//                            };
                             String imgSrc = "";
                             for (ResponderBackgroundData.Data data : backgroundData.getDatas()) {
                                 //"抢答终端背景图片",type": 2
@@ -131,10 +125,14 @@ public class ResponderResultFragment extends Fragment {
                         }
                     });
                 } catch (Exception e) {
-                    BaseData baseData = gson.fromJson(jsonBody, BaseData.class);
-                    Looper.prepare();
-                    Toast.makeText(mContext, baseData.getData(), Toast.LENGTH_SHORT).show();
-                    Looper.loop();
+                    final BaseData baseData = gson.fromJson(jsonBody, BaseData.class);
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(mContext, baseData.getData(), Toast.LENGTH_SHORT).show();
+
+                        }
+                    });
                 }
             }
         });
@@ -144,6 +142,10 @@ public class ResponderResultFragment extends Fragment {
      * 设置结果
      */
     public void setResult(String text) {
-        tvResult.setText(text);
+        Log.d(TAG, "setResult: " + text);
+        if (tvResult != null) {
+            tvResult.setText(text);
+            Log.d(TAG, "setResult: " + tvResult.getText().toString());
+        }
     }
 }

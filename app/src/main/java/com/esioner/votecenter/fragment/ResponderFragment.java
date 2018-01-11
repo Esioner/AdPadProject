@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.SimpleTarget;
@@ -35,13 +36,14 @@ import okhttp3.Response;
  * 抢答页面
  */
 
-public class ResponderFragment extends Fragment {
+public class ResponderFragment extends Fragment implements View.OnClickListener {
     private static final String TAG = "ResponderFragment";
     private Button btnResponder;
     private int projectId;
     private Context mContext;
     private RelativeLayout rvResponderRootView;
     private ImageView iv;
+    private boolean isFirst = true;
 
     @Override
     public void onAttach(Context context) {
@@ -56,6 +58,7 @@ public class ResponderFragment extends Fragment {
         View view = inflater.inflate(R.layout.responsder_fragment_layout, null);
         btnResponder = view.findViewById(R.id.btn_responder);
         rvResponderRootView = view.findViewById(R.id.rl_responder_root_view);
+        btnResponder.setOnClickListener(this);
         iv = view.findViewById(R.id.iv_responder);
         initBackground();
         setUnClick();
@@ -116,5 +119,17 @@ public class ResponderFragment extends Fragment {
      */
     public void setCanClick() {
         btnResponder.setEnabled(true);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btn_responder:
+                // 开始抢答
+                ((MainActivity) getActivity()).responder();
+                isFirst = false;
+                break;
+            default:
+        }
     }
 }

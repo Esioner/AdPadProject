@@ -8,7 +8,6 @@ import android.net.wifi.WifiManager;
 import com.esioner.votecenter.utils.Constant;
 import com.esioner.votecenter.utils.SPUtils;
 import com.esioner.votecenter.utils.Utility;
-import com.liulishuo.filedownloader.FileDownloader;
 
 /**
  * @author Esioner
@@ -22,7 +21,6 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         mContext = this;
-        FileDownloader.setup(this);
 
         //判断 mac 是否保存在本地，如果保存在本地，则直接从本地读取
         if ("".equals(Utility.getMacAdress())) {

@@ -69,8 +69,8 @@ public class ShowPictureFragment extends Fragment {
                 String jsonBody = response.body().string();
                 Log.d(TAG, "onResponse: " + jsonBody);
                 TerminalData terminalData = new Gson().fromJson(jsonBody, TerminalData.class);
-//                final String src = terminalData.getData().getSrc();
-                final String src = "http://116.62.228.3:8089/adv/material/1e08ec3effa25cac10a06307ad156b0b.jpg";
+                final String src = terminalData.getData().getSrc();
+//                final String src = "http://116.62.228.3:8089/adv/material/1e08ec3effa25cac10a06307ad156b0b.jpg";
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {

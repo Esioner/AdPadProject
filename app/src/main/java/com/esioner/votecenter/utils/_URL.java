@@ -39,4 +39,9 @@ public class _URL {
      */
     public static String RESPONDER_BACKGROUND_URL = "http://116.62.228.3:8089/adv/api/answer/getBGImage";
 
+    /**
+     * 版本更新 url
+     */
+    public static String UPDATE_VERSION_URL = "http://116.62.228.3:8089/adv/api/version/getNewestVersion";
+
 }

@@ -78,7 +78,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
         Glide.with(MyApplication.getContext()).load(item.getImgSrc()).into(holder.ivVoteHeaderImage);
         holder.tvVoteItemId.setText(item.getId() + "");
         holder.tvVoteItemName.setText(item.getName());
-        mAmount = item.getResult();
+        mAmount = 0;
         holder.tvAmount.setText(mAmount + "");
         holder.rootView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -92,11 +92,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
     public int getItemCount() {
         return voteItems.size();
     }
-
-    public int getAmount() {
-        return mAmount;
-    }
-
+    
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
