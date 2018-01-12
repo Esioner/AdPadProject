@@ -1,12 +1,8 @@
 package com.esioner.votecenter;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -14,10 +10,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.esioner.votecenter.entity.CurrentPageData;
@@ -58,7 +51,7 @@ import okio.ByteString;
 /**
  * @author Esioner
  */
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
 
@@ -82,192 +75,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private int projectId;
 
+    /**
+     * 抢答结果页面
+     */
     private ResponderResultFragment resultFragment;
+    /**
+     * 抢答页面
+     */
     private ResponderFragment responderFragment;
     private VoteFragment voteFragment;
     private WeChatWallFragment weChatWallFragment;
     private CarouselFragment carouselFragment;
-    private WebSocket webSocket;
+
     private Context mContext = this;
     private ShowPictureFragment showPictureFragment;
     private String responderResult;
     private ProgressDialog progressDialog;
-    ;
+    private OkHttpClient mClient;
+    private Request request;
+    private WebSocket mWebSocket;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //初始化控件
-        initView();
+        //初始化 websocket
+        initWebSocket();
         //检查更新
         checkUpdate();
     }
 
-    /**
-     * 检查软件更新
-     */
-    private void checkUpdate() {
-        OkHttpUtils.getInstance().getDataAsyn(_URL.UPDATE_VERSION_URL, new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String json = response.body().string();
-                Log.d(TAG, "onResponse: " + json);
-                UpdateData data = new Gson().fromJson(json, UpdateData.class);
-                int newestVersion = data.getData().getId();
-                versionId = newestVersion;
-                int currentVersion = getCurrentVersion();
-                final String appName = data.getData().getAppName();
-                Log.d(TAG, "checkUpdate: newestVersion" + newestVersion);
-                Log.d(TAG, "checkUpdate: currentVersion" + currentVersion);
-                if (newestVersion > currentVersion) {
-                    String downloadUrl = data.getData().getSrc();
-//                    String downloadUrl = "http://p1.exmmw.cn/p1/pp/xgsp.apk";
-                    Log.d(TAG, "checkUpdate:downloadUrl" + downloadUrl);
-
-                    downloadRetryTime++;
-
-                    OkHttpUtils.getInstance().downloadApk(downloadUrl, appName, new OkHttpUtils.DownloadListener() {
-                        @Override
-                        public void onFailure(Exception e) {
-                            Log.e(TAG, "onFailure:下载失败 " + e.toString());
-                            dismissProgressDialog("", STATUS_ERROR);
-                        }
-
-                        @Override
-                        public void onSuccess(String path) {
-                            Log.d(TAG, "onSuccess: " + path);
-                            dismissProgressDialog(path, STATUS_SUCCESS);
-                        }
-
-                        @Override
-                        public void onProgress(final int progress) {
-//                            Log.d(TAG, "onProgress: " + progress);
-                            showProgressDialog(progress);
-                        }
-                    });
-                }
-            }
-        });
-    }
 
     /**
-     * @param progress
+     * 初始化websocket
      */
-    public void showProgressDialog(final int progress) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (progressDialog == null) {
-                    progressDialog = new ProgressDialog(mContext);
-                    progressDialog.setTitle("正在下载");
-                    progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                    progressDialog.setMax(100);
-                    progressDialog.show();
-                }
-                progressDialog.setProgress(progress);
-            }
-        });
-    }
-
-    /**
-     * 消失对话框
-     *
-     * @param path
-     * @param status
-     */
-    public void dismissProgressDialog(final String path, final int status) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (progressDialog != null && progressDialog.isShowing()) {
-                    progressDialog.dismiss();
-                }
-                if (status == STATUS_SUCCESS) {
-                    Toast.makeText(mContext, "下载成功，即将安装", Toast.LENGTH_SHORT).show();
-                    installApp(path);
-                } else if (status == STATUS_ERROR) {
-                    Toast.makeText(mContext, "下载失败", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-    }
-
-    /**
-     * 安装 App
-     *
-     * @param path
-     */
-    public void installApp(String path) {
-        File file = new File(path);
-        if (file.exists()) {
-            //将version_id存到本地
-            SPUtils.getInstance().putInt(SPUtils.VERSION_ID, versionId);
-            //1. 创建 Intent 并设置 action
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            //2. 设置 category
-            intent.addCategory(Intent.CATEGORY_DEFAULT);
-            //添加 flag ,不记得在哪里看到的，说是解决：有些机器上不能成功跳转的问题
-            //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            //3. 设置 data 和 type
-            intent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
-            //3. 设置 data 和 type (效果和上面一样)
-            //intent.setDataAndType(Uri.parse("file://" + targetFile.getPath()),"application/vnd.android.package-archive");
-            //4. 启动 activity
-            startActivity(intent);
-        } else {
-            Toast.makeText(mContext, "文件不存在", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    /**
-     * 获取当前版本信息
-     *
-     * @return
-     */
-    public int getCurrentVersion() {
-        int currentCode = 0;
-        currentCode = SPUtils.getInstance().getInt(SPUtils.VERSION_ID);
-        return currentCode;
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        //初始化 websocket
-        initWebSocket();
-    }
-
-    private void showDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-        builder.setView(LayoutInflater.from(mContext).inflate(R.layout.vote_detail_dialog_layout, null));
-        Dialog dialog = builder.create();
-        dialog.show();
-        Window window = dialog.getWindow();
-        WindowManager.LayoutParams lp = window.getAttributes();
-        //宽高可设置具体大小
-        lp.width = 418;
-        lp.height = 319;
-        dialog.getWindow().setAttributes(lp);
-    }
-
-    /**
-     * 初始化控件
-     */
-    private void initView() {
-        findViewById(R.id.btn_0).setOnClickListener(this);
-        findViewById(R.id.btn_1).setOnClickListener(this);
-        findViewById(R.id.btn_2).setOnClickListener(this);
-        findViewById(R.id.btn_3).setOnClickListener(this);
-        findViewById(R.id.btn_4).setOnClickListener(this);
-    }
-
     private void initWebSocket() {
         final String macAddress = Utility.getMacAdress();
         Log.d(TAG, "macAddress: " + macAddress);
@@ -276,11 +118,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onOpen(WebSocket webSocket, Response response) {
                 super.onOpen(webSocket, response);
-                try {
-                    Log.d(TAG, "onOpen: " + response.body().string());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                Log.d(TAG, "onOpen: ");
             }
 
             @Override
@@ -368,11 +206,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             break;
                         //抢答结果广播
                         case 8:
-                            switchFragment(RESPONDER_RESULT_FRAGMENT_ID);
-                            /**
-                             * 设置抢答结果
-                             */
+                            //设置抢答结果
                             responderResult = data.getData().getName();
+                            //切换抢答结果页面
+                            switchFragment(RESPONDER_RESULT_FRAGMENT_ID);
                             break;
                         //刷新弹幕消息
                         case 9:
@@ -399,56 +236,173 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClosing(WebSocket webSocket, int code, String reason) {
                 super.onClosing(webSocket, code, reason);
+                removeWebsocket();
                 Log.d(TAG, "onClosing: " + reason + code);
+                mWebSocket = null;
             }
 
             @Override
             public void onClosed(WebSocket webSocket, int code, String reason) {
-                Log.d(TAG, "onClosed: " + reason);
                 super.onClosed(webSocket, code, reason);
+                Log.d(TAG, "onClosed: " + reason);
+                initWebSocket();
             }
 
             @Override
             public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-                Log.e(TAG, t.toString());
                 t.printStackTrace();
-                super.onFailure(webSocket, t, response);
+//                super.onFailure(mWebSocket, t, response);
+                //断开重连
+                initWebSocket();
             }
         };
-        Request request = new Request.Builder()
+        request = new Request.Builder()
                 .url("ws://116.62.228.3:8089/adv/terminal?mac=" + macAddress)
                 .build();
-        OkHttpClient client = new OkHttpClient.Builder()
+        mClient = new OkHttpClient.Builder()
                 .connectTimeout(10000, TimeUnit.MILLISECONDS)
                 .readTimeout(10000, TimeUnit.MILLISECONDS)
                 .writeTimeout(10000, TimeUnit.MILLISECONDS)
                 .build();
-        webSocket = client.newWebSocket(request, listener);
-        client.dispatcher().executorService().shutdown();
+        mWebSocket = mClient.newWebSocket(request, listener);
+        mClient.dispatcher().executorService().shutdown();
     }
 
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.btn_0:
-                switchFragment(0);
-                break;
-            case R.id.btn_1:
-                switchFragment(1);
-                break;
-            case R.id.btn_2:
-                switchFragment(2);
-                break;
-            case R.id.btn_3:
-                switchFragment(3);
-                break;
-            case R.id.btn_4:
-                switchFragment(5);
-                break;
-            default:
+    /**
+     * 检查软件更新
+     */
+    private void checkUpdate() {
+        OkHttpUtils.getInstance().getDataAsyn(_URL.UPDATE_VERSION_URL, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String json = response.body().string();
+                Log.d(TAG, "onResponse: " + json);
+                UpdateData data = new Gson().fromJson(json, UpdateData.class);
+                int newestVersion = data.getData().getId();
+                versionId = newestVersion;
+                int currentVersion = getCurrentVersion();
+                final String appName = data.getData().getAppName();
+                Log.d(TAG, "checkUpdate: newestVersion" + newestVersion);
+                Log.d(TAG, "checkUpdate: currentVersion" + currentVersion);
+                if (newestVersion > currentVersion) {
+                    String downloadUrl = data.getData().getSrc();
+//                    String downloadUrl = "http://p1.exmmw.cn/p1/pp/xgsp.apk";
+                    Log.d(TAG, "checkUpdate:downloadUrl" + downloadUrl);
+
+                    downloadRetryTime++;
+
+                    OkHttpUtils.getInstance().downloadApk(downloadUrl, appName, new OkHttpUtils.DownloadListener() {
+                        @Override
+                        public void onFailure(Exception e) {
+                            Log.e(TAG, "onFailure:下载失败 " + e.toString());
+                            dismissProgressDialog("", STATUS_ERROR);
+                        }
+
+                        @Override
+                        public void onSuccess(String path) {
+                            Log.d(TAG, "onSuccess: " + path);
+                            dismissProgressDialog(path, STATUS_SUCCESS);
+                        }
+
+                        @Override
+                        public void onProgress(final int progress) {
+//                            Log.d(TAG, "onProgress: " + progress);
+                            showProgressDialog(progress);
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    /**
+     * 显示 下载进度条
+     *
+     * @param progress
+     */
+    public void showProgressDialog(final int progress) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (progressDialog == null) {
+                    progressDialog = new ProgressDialog(mContext);
+                    progressDialog.setTitle("正在下载");
+                    progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                    progressDialog.setMax(100);
+                    progressDialog.show();
+                }
+                progressDialog.setProgress(progress);
+            }
+        });
+    }
+
+    /**
+     * 消失下载进度条
+     *
+     * @param path
+     * @param status
+     */
+    public void dismissProgressDialog(final String path, final int status) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (progressDialog != null && progressDialog.isShowing()) {
+                    progressDialog.dismiss();
+                }
+                if (status == STATUS_SUCCESS) {
+                    Toast.makeText(mContext, "下载成功，即将安装", Toast.LENGTH_SHORT).show();
+                    installApp(path);
+                } else if (status == STATUS_ERROR) {
+                    Toast.makeText(mContext, "下载失败", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    /**
+     * 安装 App
+     *
+     * @param path
+     */
+    public void installApp(String path) {
+        File file = new File(path);
+        if (file.exists()) {
+            //将version_id存到本地
+            SPUtils.getInstance().putInt(SPUtils.VERSION_ID, versionId);
+            //1. 创建 Intent 并设置 action
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            //2. 设置 category
+            intent.addCategory(Intent.CATEGORY_DEFAULT);
+            //添加 flag ,不记得在哪里看到的，说是解决：有些机器上不能成功跳转的问题
+            //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            //3. 设置 data 和 type
+            intent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
+            //3. 设置 data 和 type (效果和上面一样)
+            //intent.setDataAndType(Uri.parse("file://" + targetFile.getPath()),"application/vnd.android.package-archive");
+            //4. 启动 activity
+            startActivity(intent);
+        } else {
+            Toast.makeText(mContext, "文件不存在", Toast.LENGTH_SHORT).show();
         }
     }
+
+    /**
+     * 获取当前版本信息
+     *
+     * @return
+     */
+    public int getCurrentVersion() {
+        int currentCode = 0;
+        currentCode = SPUtils.getInstance().getInt(SPUtils.VERSION_ID);
+        return currentCode;
+    }
+
 
     /**
      * 根据id切换fragment
@@ -513,7 +467,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         FragmentManager manager = getSupportFragmentManager();
         //fragment 事务
         FragmentTransaction transaction = manager.beginTransaction();
-//        transaction.addToBackStack(null);
         transaction.replace(R.id.frame_layout, fragment);
         transaction.commit();
     }
@@ -559,7 +512,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Gson gson = new GsonBuilder().serializeNulls().create();
         String jsonData = gson.toJson(data);
         Log.d(TAG, "responder: " + jsonData);
-        webSocket.send(jsonData);
+        mWebSocket.send(jsonData);
     }
 
     /**
@@ -581,6 +534,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
+     * 关闭 websocket
+     */
+    public void removeWebsocket() {
+        if (mWebSocket != null) {
+            mWebSocket.close(1000, "软件退出");
+            mWebSocket.cancel();
+        }
+    }
+
+    /**
      * 传递 抢答结果
      */
     public String getResponderResult() {
@@ -588,9 +551,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    protected void onStop() {
-        webSocket.close(1000, "软件退出");
+    protected void onDestroy() {
+        removeWebsocket();
         Log.d(TAG, "onStop: 已关闭");
-        super.onStop();
+        super.onDestroy();
     }
 }

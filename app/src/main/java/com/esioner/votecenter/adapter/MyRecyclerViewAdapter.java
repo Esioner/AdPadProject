@@ -14,6 +14,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.esioner.votecenter.MyApplication;
@@ -40,6 +41,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
     private int mAmount;
     private Context mContext;
     private int voteId;
+    private int eachMaxCount;
 
     public MyRecyclerViewAdapter(List<VoteDetailData.Data.VoteItems> voteItems, Context context) {
         this.voteItems = voteItems;
@@ -92,7 +94,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
     public int getItemCount() {
         return voteItems.size();
     }
-    
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -209,16 +211,36 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
     }
 
     public String getVoteData() {
+        String jsonData = null;
         List<VoteItem> items = new ArrayList<>();
         VoteItem item;
         for (VoteDetailData.Data.VoteItems voteItem : voteItems) {
-            item = new VoteItem();
-            item.setVoteItemId(voteItem.getId());
-            item.setVoteNumber(voteItem.getResult());
-            items.add(item);
+            if (voteItem.getResult() != 0) {
+                item = new VoteItem();
+                item.setVoteItemId(voteItem.getId());
+                item.setVoteNumber(voteItem.getResult());
+                items.add(item);
+            }
         }
-        String jsonData = new Gson().toJson(items);
-        Log.d(TAG, jsonData);
+        if (items.size() != 0) {
+            jsonData = new Gson().toJson(items);
+            Log.d(TAG, jsonData);
+        } else {
+            Toast.makeText(mContext, "投票数不能为空", Toast.LENGTH_SHORT).show();
+        }
         return jsonData;
+    }
+
+    /**
+     * 提交成功清空已有记录
+     * 但是界面数据不要改防止超过次数
+     */
+    public void clearResult() {
+        for (VoteDetailData.Data.VoteItems voteItems : voteItems) {
+            if (voteItems.getResult() != 0) {
+                voteItems.setResult(0);
+            }
+        }
+//        notifyDataSetChanged();
     }
 }

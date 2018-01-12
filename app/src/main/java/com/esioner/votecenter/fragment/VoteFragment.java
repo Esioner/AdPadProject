@@ -101,32 +101,47 @@ public class VoteFragment extends Fragment {
             public void onClick(View v) {
                 Log.d(TAG, "onClick: " + voteId);
                 final String jsonData = adapter.getVoteData();
-                OkHttpUtils.getInstance().postVoteData("http://116.62.228.3:8089/adv/api/vote/" + voteId + "/voteItem/vote?mac=" + Utility.getMacAdress(), jsonData, new Callback() {
-                    @Override
-                    public void onFailure(Call call, IOException e) {
-                        Log.e(TAG, "onFailure: " + e.toString());
-                    }
-
-                    @Override
-                    public void onResponse(Call call, Response response) throws IOException {
-                        String result = response.body().string();
-                        Log.d(TAG, "onResponse: " + result);
-                        BaseData data = new Gson().fromJson(result, BaseData.class);
-                        if (data.getStatus() == 0) {
-                            //投票成功
-                            Looper.prepare();
-                            Toast.makeText(mContext, "投票成功", Toast.LENGTH_SHORT).show();
-                            Looper.loop();
-                        } else if (data.getStatus() == 1) {
-                            //投票失败
-                            Looper.prepare();
-                            Toast.makeText(mContext, data.getData(), Toast.LENGTH_SHORT).show();
-                            Looper.loop();
+                if (jsonData != null) {
+                    Log.d(TAG, "onClick: " + jsonData);
+                    OkHttpUtils.getInstance().postVoteData("http://116.62.228.3:8089/adv/api/vote/" + voteId + "/voteItem/vote?mac=" + Utility.getMacAdress(), jsonData, new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+                            Log.e(TAG, "onFailure: " + e.toString());
                         }
-                    }
-                });
+
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            String result = response.body().string();
+                            Log.d(TAG, "onResponse: " + result);
+                            BaseData data = new Gson().fromJson(result, BaseData.class);
+                            if (data.getStatus() == 0) {
+                                //投票成功
+                                showToast("投票成功");
+                            } else if (data.getStatus() == 1) {
+                                //投票失败
+                                showToast(data.getData());
+                            }
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    adapter.clearResult();
+                                }
+                            });
+                        }
+                    });
+                }
             }
         });
+    }
+
+    private void showToast(final String text) {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(mContext, text, Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 
     public void initData() {

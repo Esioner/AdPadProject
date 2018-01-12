@@ -130,7 +130,9 @@ public class WeChatWallFragment extends Fragment implements View.OnClickListener
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        bgThread.destroy();
+        if (bgThread.isAlive()) {
+            bgThread.destroy();
+        }
     }
 
     /**
