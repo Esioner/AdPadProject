@@ -1,5 +1,7 @@
 package com.esioner.votecenter;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -10,7 +12,10 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.esioner.votecenter.entity.CurrentPageData;
@@ -37,6 +42,8 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
@@ -95,17 +102,103 @@ public class MainActivity extends AppCompatActivity {
     private Request request;
     private WebSocket mWebSocket;
 
+    /**
+     * 退出按钮按下的时间
+     */
+    private long pressTime;
+    /**
+     * 松开按钮的时间
+     */
+    private long releaseTime;
+    private TimerTask mTask;
+    private Timer exitTimer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        initView();
+
         //初始化 websocket
         initWebSocket();
         //检查更新
-        checkUpdate();
+//        checkUpdate();
+//        showDialog();
     }
 
+    private void initView() {
+        TextView tvExit = findViewById(R.id.tv_exit);
+        tvExit.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        pressTime = System.currentTimeMillis();
+                        Log.d(TAG, "onTouch: " + pressTime);
+                        //开始计时
+                        startTimer();
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        releaseTime = System.currentTimeMillis();
+                        Log.d(TAG, "onTouch: " + releaseTime);
+                        if ((releaseTime - pressTime) / 1000 < 10) {
+                            cancelTimer();
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                return true;
+            }
+        });
+    }
+
+    /**
+     * 开始计时
+     */
+    private void startTimer() {
+        if (mTask != null || exitTimer != null) {
+            cancelTimer();
+        }
+        mTask = new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        finish();
+                    }
+                });
+            }
+        };
+        exitTimer = new Timer();
+        exitTimer.schedule(mTask, 10000);
+        Log.d(TAG, "startTimer: ");
+    }
+
+    /**
+     * 取消定时器
+     */
+    private void cancelTimer() {
+        if (mTask != null) {
+            mTask.cancel();
+            mTask = null;
+        }
+        if (exitTimer != null) {
+            exitTimer.cancel();
+            exitTimer = null;
+        }
+    }
+
+    public void showDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.vote_detail_dialog_layout, null);
+        builder.setView(view);
+        final Dialog dialog = builder.create();
+        dialog.setCancelable(true);
+        dialog.show();
+    }
 
     /**
      * 初始化websocket
@@ -113,7 +206,6 @@ public class MainActivity extends AppCompatActivity {
     private void initWebSocket() {
         final String macAddress = Utility.getMacAdress();
         Log.d(TAG, "macAddress: " + macAddress);
-
         WebSocketListener listener = new WebSocketListener() {
             @Override
             public void onOpen(WebSocket webSocket, Response response) {
@@ -539,7 +631,7 @@ public class MainActivity extends AppCompatActivity {
     public void removeWebsocket() {
         if (mWebSocket != null) {
             mWebSocket.close(1000, "软件退出");
-            mWebSocket.cancel();
+//            mWebSocket.cancel();
         }
     }
 
@@ -551,9 +643,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
+    protected void onStop() {
         removeWebsocket();
         Log.d(TAG, "onStop: 已关闭");
-        super.onDestroy();
+        super.onStop();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
     }
 }

@@ -1,127 +1,168 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="418px"
-    android:layout_height="319px"
-    android:padding="10px">
+    android:layout_width="340px"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
 
-    <LinearLayout
-        android:layout_width="240px"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+    <RelativeLayout
+        android:layout_width="313px"
+        android:layout_height="240px"
+        android:layout_marginBottom="14px"
+        android:layout_marginEnd="14px"
+        android:layout_marginStart="14px"
+        android:layout_marginTop="12px">
 
         <ImageView
-            android:layout_width="240px"
-            android:layout_height="229px"
-            android:background="@drawable/user_header_image" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="15px"
-            android:text="张及其"
-            android:textColor="#333"
-            android:textSize="22px" />
-    </LinearLayout>
-
-    <TextView
-        android:layout_width="10px"
-        android:layout_height="match_parent" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center_vertical"
-        android:orientation="vertical">
-
-        <TextView
+            android:id="@+id/iv_vote_item_dialog_header_image"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10px"
-            android:gravity="center"
-            android:text="选择投票数:"
-            android:textColor="#F97A34"
-            android:textSize="22px" />
+            android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true" />
+
+        <RelativeLayout
+            android:layout_width="40px"
+            android:layout_height="40px"
+            android:layout_alignParentRight="true"
+            android:background="#20000000">
+
+            <ImageView
+                android:id="@+id/iv_exit_dialog"
+                android:layout_width="40px"
+                android:layout_height="40px"
+                android:background="@drawable/dialog_exit" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="44px"
+            android:layout_height="49px">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_vote_user_count" />
+
+            <TextView
+                android:id="@+id/tv_vote_item_dialog_id"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="3"
+                android:textColor="#fff"
+                android:textSize="28px" />
+        </RelativeLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_height="40px"
+            android:layout_alignParentBottom="true"
+            android:background="#8FFF">
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="15px"
-                android:layout_weight="1"
+            <TextView
+                android:id="@+id/tv_vote_item_dialog_name"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:gravity="center"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tv_1"
-                    android:layout_width="41px"
-                    android:layout_height="41px"
-                    android:layout_marginBottom="6px"
-                    android:layout_marginTop="6px"
-                    android:background="#DCDCDC"
-                    android:gravity="center"
-                    android:text="1"
-                    android:textColor="#F97A34"
-                    android:textSize="32px" />
-
-                <TextView
-                    android:id="@+id/tv_3"
-                    style="@style/vote_item_style"
-                    android:text="3" />
-
-                <TextView
-                    android:id="@+id/tv_5"
-                    style="@style/vote_item_style"
-                    android:text="5" />
-
-                <TextView
-                    android:id="@+id/tv_7"
-                    style="@style/vote_item_style"
-                    android:text="7" />
-
-                <TextView
-                    android:id="@+id/tv_9"
-                    style="@style/vote_item_style"
-                    android:text="9" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tv_2"
-                    style="@style/vote_item_style"
-                    android:text="2" />
-
-                <TextView
-                    android:id="@+id/tv_4"
-                    style="@style/vote_item_style"
-                    android:text="4" />
-
-                <TextView
-                    android:id="@+id/tv_6"
-                    style="@style/vote_item_style"
-                    android:text="6" />
-
-                <TextView
-                    android:id="@+id/tv_8"
-                    style="@style/vote_item_style"
-                    android:text="8" />
-
-                <TextView
-                    android:id="@+id/tv_10"
-                    style="@style/vote_item_style"
-                    android:text="10" />
-            </LinearLayout>
+                android:text="张及其"
+                android:textColor="#333"
+                android:textSize="22px" />
         </LinearLayout>
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="14px"
+        android:layout_marginRight="14px"
+        android:layout_marginTop="6px">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="left|center_vertical"
+            android:text="选择投票数:"
+            android:textColor="#F97A34"
+            android:textSize="20px" />
+
+        <TextView
+            android:id="@+id/tv_vote_item_dialog_clear"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="right|center_vertical"
+            android:text="清空"
+            android:textColor="#F97A34"
+            android:textSize="20px" />
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20px"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tv_1"
+            style="@style/vote_item_style"
+            android:text="1" />
+
+        <TextView
+            android:id="@+id/tv_2"
+            style="@style/vote_item_style"
+            android:text="2" />
+
+        <TextView
+            android:id="@+id/tv_3"
+            style="@style/vote_item_style"
+            android:text="3" />
+
+        <TextView
+            android:id="@+id/tv_4"
+            style="@style/vote_item_style"
+            android:text="4" />
+
+        <TextView
+            android:id="@+id/tv_5"
+            style="@style/vote_item_style"
+            android:text="5" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="30dp"
+        android:layout_marginTop="16px"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tv_6"
+            style="@style/vote_item_style"
+            android:text="6" />
+
+        <TextView
+            android:id="@+id/tv_7"
+            style="@style/vote_item_style"
+            android:text="7" />
+
+
+        <TextView
+            android:id="@+id/tv_8"
+            style="@style/vote_item_style"
+            android:text="8" />
+
+        <TextView
+            android:id="@+id/tv_9"
+            style="@style/vote_item_style"
+            android:text="9" />
+
+        <TextView
+            android:id="@+id/tv_10"
+            style="@style/vote_item_style"
+            android:text="10" />
+    </LinearLayout>
 
 </LinearLayout>

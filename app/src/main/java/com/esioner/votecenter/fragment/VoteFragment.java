@@ -3,7 +3,6 @@ package com.esioner.votecenter.fragment;
 import android.content.Context;
 import android.graphics.Rect;
 import android.os.Bundle;
-import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
@@ -17,7 +16,7 @@ import android.widget.Toast;
 
 import com.esioner.votecenter.MainActivity;
 import com.esioner.votecenter.R;
-import com.esioner.votecenter.adapter.MyRecyclerViewAdapter;
+import com.esioner.votecenter.adapter.VoteRecyclerViewAdapter;
 import com.esioner.votecenter.entity.BaseData;
 import com.esioner.votecenter.entity.VoteDetailData;
 import com.esioner.votecenter.utils.OkHttpUtils;
@@ -88,7 +87,7 @@ public class VoteFragment extends Fragment {
     }
 
     private void initView(VoteDetailData detailData) {
-        final MyRecyclerViewAdapter adapter = new MyRecyclerViewAdapter(voteItems, mContext);
+        final VoteRecyclerViewAdapter adapter = new VoteRecyclerViewAdapter(voteItems, mContext);
         GridLayoutManager manager = new GridLayoutManager(mContext, 3);
         rvPersonInfo.addItemDecoration(new SpaceItemDecoration());
         rvPersonInfo.setLayoutManager(manager);

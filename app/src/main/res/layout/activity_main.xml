@@ -3,14 +3,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background"
+    android:background="@drawable/back"
     android:orientation="vertical"
     tools:context="com.esioner.votecenter.MainActivity">
-    
+
+
+
     <FrameLayout
         android:id="@+id/frame_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
+    <TextView
+        android:id="@+id/tv_exit"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        />
 
 </RelativeLayout>

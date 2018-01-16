@@ -16,8 +16,8 @@ import com.esioner.votecenter.MainActivity;
 public class BootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        Intent intentBoot = new Intent(context, MainActivity.class);
-        intentBoot.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intentBoot);
+//        Intent intentBoot = new Intent(context, MainActivity.class);
+//        intentBoot.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        context.startActivity(intentBoot);
     }
 }

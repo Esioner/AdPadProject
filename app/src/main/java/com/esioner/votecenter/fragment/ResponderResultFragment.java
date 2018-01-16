@@ -59,7 +59,7 @@ public class ResponderResultFragment extends Fragment {
         View view = inflater.inflate(R.layout.responsder_result_fragment_layout, null);
         tvResult = view.findViewById(R.id.tv_result);
         iv = view.findViewById(R.id.iv_responder_result);
-        tvResult.setText(result);
+        tvResult.setText(result + "\n抢答成功！");
         initBackground();
         return view;
     }

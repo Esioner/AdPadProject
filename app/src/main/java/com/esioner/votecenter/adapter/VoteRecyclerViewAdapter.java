@@ -4,9 +4,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,11 +19,7 @@ import com.esioner.votecenter.MyApplication;
 import com.esioner.votecenter.R;
 import com.esioner.votecenter.entity.VoteDetailData;
 import com.esioner.votecenter.entity.VoteItem;
-import com.esioner.votecenter.utils.DensityUtil;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,15 +29,15 @@ import java.util.List;
  * @date 2018/1/8
  */
 
-public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAdapter.ViewHolder> implements View.OnClickListener {
-    private final static String TAG = "MyRecyclerViewAdapter";
+public class VoteRecyclerViewAdapter extends RecyclerView.Adapter<VoteRecyclerViewAdapter.ViewHolder> implements View.OnClickListener {
+    private final static String TAG = "VoteRecyclerViewAdapter";
     private List<VoteDetailData.Data.VoteItems> voteItems;
     private int mAmount;
     private Context mContext;
     private int voteId;
-    private int eachMaxCount;
+    private int eachVoteTime;
 
-    public MyRecyclerViewAdapter(List<VoteDetailData.Data.VoteItems> voteItems, Context context) {
+    public VoteRecyclerViewAdapter(List<VoteDetailData.Data.VoteItems> voteItems, Context context) {
         this.voteItems = voteItems;
         mContext = context;
     }
@@ -78,7 +72,9 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
     public void onBindViewHolder(final ViewHolder holder, int position) {
         final VoteDetailData.Data.VoteItems item = voteItems.get(position);
         Glide.with(MyApplication.getContext()).load(item.getImgSrc()).into(holder.ivVoteHeaderImage);
-        holder.tvVoteItemId.setText(item.getId() + "");
+        if (voteItems.size() != 1) {
+            holder.tvVoteItemId.setText(item.getId() + "");
+        }
         holder.tvVoteItemName.setText(item.getName());
         mAmount = 0;
         holder.tvAmount.setText(mAmount + "");
@@ -116,15 +112,25 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
         TextView tv8 = view.findViewById(R.id.tv_8);
         TextView tv9 = view.findViewById(R.id.tv_9);
         TextView tv10 = view.findViewById(R.id.tv_10);
+        ImageView ivExit = view.findViewById(R.id.iv_exit_dialog);
+        TextView tvName = view.findViewById(R.id.tv_vote_item_dialog_name);
+        TextView tvId = view.findViewById(R.id.tv_vote_item_dialog_id);
+        ImageView ivHeaderImage = view.findViewById(R.id.iv_vote_item_dialog_header_image);
+        TextView tvClear = view.findViewById(R.id.tv_vote_item_dialog_clear);
+        //设置 dialog 显示的内容
+        Glide.with(mContext).load(item.getImgSrc()).into(ivHeaderImage);
+        tvName.setText(item.getName());
+        tvId.setText(item.getId() + "");
         builder.setView(view);
         final Dialog dialog = builder.create();
-        dialog.setCancelable(false);
+        //点击dialog外面可以退出
+        dialog.setCancelable(true);
         dialog.show();
         Window window = dialog.getWindow();
         WindowManager.LayoutParams lp = window.getAttributes();
         //宽高可设置具体大小
-        lp.width = 418;
-        lp.height = 319;
+        lp.width = 375;
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
         dialog.getWindow().setAttributes(lp);
 
         tv1.setOnClickListener(new View.OnClickListener() {
@@ -205,6 +211,22 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
             public void onClick(View v) {
                 item.setResult(10);
                 tv.setText("10");
+                dialog.dismiss();
+            }
+        });
+        ivExit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (dialog != null && dialog.isShowing()) {
+                    dialog.dismiss();
+                }
+            }
+        });
+        tvClear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                item.setResult(0);
+                tv.setText("0");
                 dialog.dismiss();
             }
         });
