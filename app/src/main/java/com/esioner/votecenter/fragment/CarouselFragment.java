@@ -24,9 +24,6 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
 import okhttp3.Response;
 
 /**
@@ -108,12 +105,14 @@ public class CarouselFragment extends Fragment implements ViewPagerAdapter.PlayL
                             urls.add(material.getSrc());
                         }
 //                    download(materialsList);
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                initView();
-                            }
-                        });
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    initView();
+                                }
+                            });
+                        }
 //                    mHandler.sendEmptyMessage(GET_DATA_SUCCESS);
                     }
                 } catch (IOException e) {

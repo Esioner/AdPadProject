@@ -63,7 +63,6 @@ public class ShowPictureFragment extends Fragment {
             public void onFailure(Call call, IOException e) {
 
             }
-
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String jsonBody = response.body().string();
@@ -71,12 +70,14 @@ public class ShowPictureFragment extends Fragment {
                 TerminalData terminalData = new Gson().fromJson(jsonBody, TerminalData.class);
                 final String src = terminalData.getData().getSrc();
 //                final String src = "http://116.62.228.3:8089/adv/material/1e08ec3effa25cac10a06307ad156b0b.jpg";
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Glide.with(mContext).load(src).into(ivShowPic);
-                    }
-                });
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Glide.with(mContext).load(src).into(ivShowPic);
+                        }
+                    });
+                }
             }
         });
     }

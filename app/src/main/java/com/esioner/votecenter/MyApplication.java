@@ -21,7 +21,6 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         mContext = this;
-
         //判断 mac 是否保存在本地，如果保存在本地，则直接从本地读取
         if ("".equals(Utility.getMacAdress())) {
             WifiManager wifi = (WifiManager) MyApplication.getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);

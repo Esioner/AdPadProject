@@ -35,11 +35,19 @@ public class VoteRecyclerViewAdapter extends RecyclerView.Adapter<VoteRecyclerVi
     private int mAmount;
     private Context mContext;
     private int voteId;
-    private int eachVoteTime;
+    private int eachVoteNum = 10;
+    private int allCanVoteNum;
+    private int currentVoteNum;
 
-    public VoteRecyclerViewAdapter(List<VoteDetailData.Data.VoteItems> voteItems, Context context) {
+    public VoteRecyclerViewAdapter(List<VoteDetailData.Data.VoteItems> voteItems, Context context, int eachVoteNum, int allCanVoteNum) {
         this.voteItems = voteItems;
-        mContext = context;
+        this.mContext = context;
+        if (eachVoteNum <= 10) {
+            this.eachVoteNum = eachVoteNum;
+        }
+        this.allCanVoteNum = allCanVoteNum;
+        //清空
+        clearResult();
     }
 
 
@@ -72,8 +80,10 @@ public class VoteRecyclerViewAdapter extends RecyclerView.Adapter<VoteRecyclerVi
     public void onBindViewHolder(final ViewHolder holder, int position) {
         final VoteDetailData.Data.VoteItems item = voteItems.get(position);
         Glide.with(MyApplication.getContext()).load(item.getImgSrc()).into(holder.ivVoteHeaderImage);
-        if (voteItems.size() != 1) {
-            holder.tvVoteItemId.setText(item.getId() + "");
+        if (voteItems.size() > 1) {
+            holder.tvVoteItemId.setText((position + 1) + "");
+        } else {
+            holder.tvVoteItemId.setText("");
         }
         holder.tvVoteItemName.setText(item.getName());
         mAmount = 0;
@@ -112,6 +122,21 @@ public class VoteRecyclerViewAdapter extends RecyclerView.Adapter<VoteRecyclerVi
         TextView tv8 = view.findViewById(R.id.tv_8);
         TextView tv9 = view.findViewById(R.id.tv_9);
         TextView tv10 = view.findViewById(R.id.tv_10);
+        //循环控制显示的投票数
+        List<TextView> tvLists = new ArrayList<>();
+        tvLists.add(tv1);
+        tvLists.add(tv2);
+        tvLists.add(tv3);
+        tvLists.add(tv4);
+        tvLists.add(tv5);
+        tvLists.add(tv6);
+        tvLists.add(tv7);
+        tvLists.add(tv8);
+        tvLists.add(tv9);
+        tvLists.add(tv10);
+        for (int i = 0; i < eachVoteNum; i++) {
+            tvLists.get(i).setVisibility(View.VISIBLE);
+        }
         ImageView ivExit = view.findViewById(R.id.iv_exit_dialog);
         TextView tvName = view.findViewById(R.id.tv_vote_item_dialog_name);
         TextView tvId = view.findViewById(R.id.tv_vote_item_dialog_id);
@@ -251,6 +276,14 @@ public class VoteRecyclerViewAdapter extends RecyclerView.Adapter<VoteRecyclerVi
             Toast.makeText(mContext, "投票数不能为空", Toast.LENGTH_SHORT).show();
         }
         return jsonData;
+    }
+
+    public int getCurrentVoteNum() {
+        int sum = 0;
+        for (VoteDetailData.Data.VoteItems voteItem : voteItems) {
+            sum = sum + voteItem.getResult();
+        }
+        return sum;
     }
 
     /**

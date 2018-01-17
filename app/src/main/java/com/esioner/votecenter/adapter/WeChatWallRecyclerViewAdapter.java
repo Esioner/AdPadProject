@@ -4,7 +4,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.esioner.votecenter.R;
@@ -26,13 +25,11 @@ public class WeChatWallRecyclerViewAdapter extends RecyclerView.Adapter<WeChatWa
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
-        private final ImageView ivHeaderImage;
         private final TextView tvName;
         private final TextView tvContent;
 
         public ViewHolder(View itemView) {
             super(itemView);
-            ivHeaderImage = itemView.findViewById(R.id.iv_we_chat_item_header_image);
             tvName = itemView.findViewById(R.id.tv_we_chat_item_name);
             tvContent = itemView.findViewById(R.id.tv_we_chat_item_content);
         }

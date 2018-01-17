@@ -7,8 +7,6 @@ package com.esioner.votecenter.entity;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.util.List;
-
 /**
  * {
  * "code": 9,

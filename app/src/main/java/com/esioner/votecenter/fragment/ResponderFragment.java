@@ -1,7 +1,6 @@
 package com.esioner.votecenter.fragment;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -12,11 +11,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.request.transition.Transition;
 import com.esioner.votecenter.MainActivity;
 import com.esioner.votecenter.R;
 import com.esioner.votecenter.entity.ResponderBackgroundData;
@@ -26,8 +22,6 @@ import com.google.gson.Gson;
 
 import java.io.IOException;
 
-import okhttp3.Call;
-import okhttp3.Callback;
 import okhttp3.Response;
 
 /**
@@ -77,28 +71,24 @@ public class ResponderFragment extends Fragment implements View.OnClickListener 
                     String jsonBody = response.body().string();
                     Log.d(TAG, "run: " + jsonBody);
                     final ResponderBackgroundData backgroundData = new Gson().fromJson(jsonBody, ResponderBackgroundData.class);
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-//                            SimpleTarget<Drawable> simpleTarget = new SimpleTarget<Drawable>() {
-//                                @Override
-//                                public void onResourceReady(Drawable resource, Transition<? super Drawable> transition) {
-//                                    rvResponderRootView.setBackground(resource);
-//                                }
-//                            };
-                            String imgSrc = "";
-                            for (ResponderBackgroundData.Data data : backgroundData.getDatas()) {
-                                //"抢答终端背景图片",type": 2
-                                if (data.getType() == 2) {
-                                    imgSrc = data.getImgSrc();
-                                } else {
-                                    continue;
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                String imgSrc = "";
+                                for (ResponderBackgroundData.Data data : backgroundData.getDatas()) {
+                                    //"抢答终端背景图片",type": 2
+                                    if (data.getType() == 2) {
+                                        imgSrc = data.getImgSrc();
+                                    } else {
+                                        continue;
+                                    }
                                 }
+                                Log.d(TAG, "run: " + imgSrc);
+                                Glide.with(mContext).load(imgSrc).into(iv);
                             }
-                            Log.d(TAG, "run: " + imgSrc);
-                            Glide.with(mContext).load(imgSrc).into(iv);
-                        }
-                    });
+                        });
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

@@ -1,7 +1,5 @@
 package com.esioner.votecenter;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -12,7 +10,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.LayoutInflater;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
@@ -41,6 +39,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -74,7 +73,21 @@ public class MainActivity extends AppCompatActivity {
     /**
      * 重试次数
      */
-    private static int downloadRetryTime = 0;
+    private int retryAllTime = 5;
+    /**
+     * 当前重试的次数
+     */
+    private int retryCurrentTime = 0;
+
+    /**
+     * mac 地址
+     */
+    public static final String macAddress = Utility.getMacAdress();
+    /**
+     * 是否是点击按键进入
+     */
+    private boolean isOnKeyIn = false;
+
 
     private int versionId;
     /**
@@ -91,16 +104,24 @@ public class MainActivity extends AppCompatActivity {
      */
     private ResponderFragment responderFragment;
     private VoteFragment voteFragment;
-    private WeChatWallFragment weChatWallFragment;
+    private static WeChatWallFragment weChatWallFragment;
     private CarouselFragment carouselFragment;
 
     private Context mContext = this;
     private ShowPictureFragment showPictureFragment;
     private String responderResult;
     private ProgressDialog progressDialog;
-    private OkHttpClient mClient;
-    private Request request;
-    private WebSocket mWebSocket;
+    private OkHttpClient mOkClient;
+    private Request mRequest;
+    private static WebSocket mWebSocket;
+    /**
+     * 微信墙数据
+     */
+    private List<WeChatDetailData> allWeChatDatas = new ArrayList<>();
+    /**
+     * 进入微信墙成功
+     */
+    private boolean isInWeChatWall = false;
 
     /**
      * 退出按钮按下的时间
@@ -112,23 +133,28 @@ public class MainActivity extends AppCompatActivity {
     private long releaseTime;
     private TimerTask mTask;
     private Timer exitTimer;
+    private MyWebSocketListener webSocketListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         initView();
 
         //初始化 websocket
         initWebSocket();
         //检查更新
-//        checkUpdate();
-//        showDialog();
+        checkUpdate();
     }
 
+    /**
+     * 左上角长按十秒退出
+     */
     private void initView() {
         TextView tvExit = findViewById(R.id.tv_exit);
+        //长按左上角十秒退出
         tvExit.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -167,6 +193,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        removeWebsocket();
                         finish();
                     }
                 });
@@ -191,175 +218,90 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void showDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-        View view = LayoutInflater.from(mContext).inflate(R.layout.vote_detail_dialog_layout, null);
-        builder.setView(view);
-        final Dialog dialog = builder.create();
-        dialog.setCancelable(true);
-        dialog.show();
-    }
 
     /**
      * 初始化websocket
      */
     private void initWebSocket() {
-        final String macAddress = Utility.getMacAdress();
-        Log.d(TAG, "macAddress: " + macAddress);
-        WebSocketListener listener = new WebSocketListener() {
-            @Override
-            public void onOpen(WebSocket webSocket, Response response) {
-                super.onOpen(webSocket, response);
-                Log.d(TAG, "onOpen: ");
+        try {
+            webSocketListener = new MyWebSocketListener(macAddress);
+            if (mWebSocket != null) {
+                mRequest = mWebSocket.request();
+            } else {
+                mRequest = new Request.Builder()
+                        .url(_URL.WEBSOCKET_URL + macAddress)
+                        .build();
             }
-
-            @Override
-            public void onMessage(WebSocket webSocket, final String text) {
-                try {
-                    Log.d(TAG, "onMessage: " + text);
-                    //获取 code
-                    JSONObject object = new JSONObject(text);
-                    int code = object.getInt("code");
-                    Log.d(TAG, "projectId = " + projectId);
-                    WebSocketData data = null;
-                    if (code != 9) {
-                        data = new Gson().fromJson(text, WebSocketData.class);
-                        if (data.getData() != null) {
-                            if (data.getData().getPage() == 1 || data.getData().getPage() == 2) {
-                                projectId = data.getData().getProjectId();
-                                Log.d(TAG, "onMessage: " + projectId);
-                            }
-                        }
-                    }
-                    switch (code) {
-                        //切换页面
-                        case 2:
-                            int pageCode = data.getData().getPage();
-                            switch (pageCode) {
-                                //未知页面
-                                case 0:
-                                    break;
-                                //轮播页面
-                                case 1:
-                                    if (projectId != -1) {
-                                        switchFragment(CAROUSEL_FRAGMENT_ID);
-                                    } else {
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                Toast.makeText(mContext, "ProjectId:" + projectId, Toast.LENGTH_SHORT).show();
-                                            }
-                                        });
-                                    }
-                                    break;
-                                //投票页面
-                                case 2:
-                                    switchFragment(VOTE_FRAGMENT_ID);
-                                    break;
-                                //抢答页面
-                                case 3:
-                                    switchFragment(RESPONDER_FRAGMENT_ID);
-                                    break;
-                                //微信墙页面
-                                case 4:
-                                    switchFragment(WE_CHAT_WALL_FRAGMENT_ID);
-                                    break;
-                                case 5:
-                                    switchFragment(SHOW_PICTURE_ID);
-                                    break;
-                                default:
-                                    break;
-                            }
-                            //将当前页面信息封装成 json
-                            CurrentPageData currentPageData = new CurrentPageData();
-                            currentPageData.setCode(1);
-                            currentPageData.setData(currentPageData.new Data(macAddress, pageCode));
-                            String sendJson = new Gson().toJson(currentPageData);
-                            //跳转之后需要向服务器发送当前页面数据
-                            webSocket.send(sendJson);
-                            break;
-                        //开始抢答,使抢答按钮变得可点击
-                        case 5:
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    startResponder();
-                                }
-                            });
-                            break;
-                        //停止抢答，使按钮变得不可点击
-                        case 6:
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    stopResponder();
-                                }
-                            });
-                            break;
-                        //抢答结果广播
-                        case 8:
-                            //设置抢答结果
-                            responderResult = data.getData().getName();
-                            //切换抢答结果页面
-                            switchFragment(RESPONDER_RESULT_FRAGMENT_ID);
-                            break;
-                        //刷新弹幕消息
-                        case 9:
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    refreshWeChatData(text);
-                                }
-                            });
-                            break;
-                        default:
-                            break;
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onMessage(WebSocket webSocket, ByteString bytes) {
-                super.onMessage(webSocket, bytes);
-            }
-
-            @Override
-            public void onClosing(WebSocket webSocket, int code, String reason) {
-                super.onClosing(webSocket, code, reason);
-                removeWebsocket();
-                Log.d(TAG, "onClosing: " + reason + code);
-                mWebSocket = null;
-            }
-
-            @Override
-            public void onClosed(WebSocket webSocket, int code, String reason) {
-                super.onClosed(webSocket, code, reason);
-                Log.d(TAG, "onClosed: " + reason);
-                initWebSocket();
-            }
-
-            @Override
-            public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-                t.printStackTrace();
-//                super.onFailure(mWebSocket, t, response);
-                //断开重连
-                initWebSocket();
-            }
-        };
-        request = new Request.Builder()
-                .url("ws://116.62.228.3:8089/adv/terminal?mac=" + macAddress)
-                .build();
-        mClient = new OkHttpClient.Builder()
-                .connectTimeout(10000, TimeUnit.MILLISECONDS)
-                .readTimeout(10000, TimeUnit.MILLISECONDS)
-                .writeTimeout(10000, TimeUnit.MILLISECONDS)
-                .build();
-        mWebSocket = mClient.newWebSocket(request, listener);
-        mClient.dispatcher().executorService().shutdown();
+            mOkClient = new OkHttpClient.Builder()
+                    .connectTimeout(10000, TimeUnit.MILLISECONDS)
+                    .readTimeout(10000, TimeUnit.MILLISECONDS)
+                    .writeTimeout(10000, TimeUnit.MILLISECONDS)
+                    .build();
+            mWebSocket = mOkClient.newWebSocket(mRequest, webSocketListener);
+            mOkClient.dispatcher().executorService().shutdown();
+        } catch (Exception e) {
+            removeWebsocket();
+            Log.e(TAG, "initWebSocket: " + e.toString());
+        }
     }
 
+    /**
+     * 重新链接 websocket
+     */
+    public synchronized void restartConnectWebSocket() {
+        if (retryCurrentTime <= retryAllTime) {
+            //初始化 websocket 链接
+            initWebSocket();
+            retryCurrentTime++;
+        } else {
+            retryCurrentTime = 0;
+            //手动断开 websocket
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Response response = OkHttpUtils.getInstance().getDataSync(_URL.BREAK_DEVICE + macAddress);
+                        String str = response.body().string();
+                        Log.d(TAG, "restartConnectWebSocket:" + str);
+                        final JSONObject object = new JSONObject(str);
+                        int status = object.getInt("status");
+                        if (status == 0) {
+                            //断开成功，重新链接
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    initWebSocket();
+                                }
+                            });
+                        } else if (status == 1) {
+                            //断开失败报错
+                            final String errStr = object.getString("data");
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(mContext, errStr, Toast.LENGTH_LONG).show();
+                                    restartApplication();
+                                }
+                            });
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        }
+    }
+
+    /**
+     * 软件重启
+     */
+    private void restartApplication() {
+        final Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+    }
 
     /**
      * 检查软件更新
@@ -384,10 +326,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "checkUpdate: currentVersion" + currentVersion);
                 if (newestVersion > currentVersion) {
                     String downloadUrl = data.getData().getSrc();
-//                    String downloadUrl = "http://p1.exmmw.cn/p1/pp/xgsp.apk";
                     Log.d(TAG, "checkUpdate:downloadUrl" + downloadUrl);
-
-                    downloadRetryTime++;
 
                     OkHttpUtils.getInstance().downloadApk(downloadUrl, appName, new OkHttpUtils.DownloadListener() {
                         @Override
@@ -404,7 +343,6 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void onProgress(final int progress) {
-//                            Log.d(TAG, "onProgress: " + progress);
                             showProgressDialog(progress);
                         }
                     });
@@ -425,6 +363,7 @@ public class MainActivity extends AppCompatActivity {
                 if (progressDialog == null) {
                     progressDialog = new ProgressDialog(mContext);
                     progressDialog.setTitle("正在下载");
+//                    progressDialog.setCancelable(false);
                     progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
                     progressDialog.setMax(100);
                     progressDialog.show();
@@ -525,10 +464,9 @@ public class MainActivity extends AppCompatActivity {
                 transactionFragment(voteFragment);
                 break;
             case WE_CHAT_WALL_FRAGMENT_ID:
-                if (weChatWallFragment != null) {
-                    weChatWallFragment = null;
+                if (weChatWallFragment == null) {
+                    weChatWallFragment = new WeChatWallFragment();
                 }
-                weChatWallFragment = new WeChatWallFragment();
                 transactionFragment(weChatWallFragment);
                 break;
             case CAROUSEL_FRAGMENT_ID:
@@ -570,6 +508,7 @@ public class MainActivity extends AppCompatActivity {
         Gson gson = new Gson();
         WeChatData chatData = gson.fromJson(json, WeChatData.class);
         List<WeChatDetailData> weChatDataList = chatData.getDatas();
+        allWeChatDatas.addAll(weChatDataList);
         if (weChatWallFragment != null) {
             weChatWallFragment.initData(weChatDataList);
         }
@@ -628,15 +567,14 @@ public class MainActivity extends AppCompatActivity {
     /**
      * 关闭 websocket
      */
-    public void removeWebsocket() {
+    public static void removeWebsocket() {
         if (mWebSocket != null) {
             mWebSocket.close(1000, "软件退出");
-//            mWebSocket.cancel();
         }
     }
 
     /**
-     * 传递 抢答结果
+     * 传递抢答结果
      */
     public String getResponderResult() {
         return responderResult;
@@ -653,5 +591,179 @@ public class MainActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         finish();
+    }
+
+    /**
+     * 按键监听
+     *
+     * @param keyCode
+     * @param event
+     * @return
+     */
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        Log.d(TAG, "onKeyUp: " + keyCode);
+        //当点击 home 键的时候，进入留言板块页面, 留言板块页面从连接终端以后数据一直记录，哪怕页面没有弹起
+        if (keyCode == 122) {
+            switchFragment(WE_CHAT_WALL_FRAGMENT_ID);
+        }
+        return super.onKeyUp(keyCode, event);
+    }
+
+    private class MyWebSocketListener extends WebSocketListener {
+        private String macAddress;
+
+        public MyWebSocketListener(String macAddress) {
+            this.macAddress = macAddress;
+        }
+
+        @Override
+        public void onOpen(WebSocket webSocket, Response response) {
+            super.onOpen(webSocket, response);
+            Log.d(TAG, "onOpen: ");
+        }
+
+        @Override
+        public void onMessage(WebSocket webSocket, final String text) {
+            try {
+                Log.d(TAG, "onMessage: " + text);
+                //获取 code
+                JSONObject object = new JSONObject(text);
+                int code = object.getInt("code");
+                Log.d(TAG, "projectId = " + projectId);
+                WebSocketData data = null;
+                //页面id
+                int pageCode = 0;
+                //只有当 code == 2 切换页面 或则是 code == 8 抢答服务器广播的时候需要
+                if (code == 2 || code == 8) {
+                    data = new Gson().fromJson(text, WebSocketData.class);
+                    if (code == 2) {
+                        pageCode = data.getData().getPage();
+                    }
+                    if (data.getData() != null) {
+                        if (pageCode == 1 || pageCode == 2) {
+                            projectId = data.getData().getProjectId();
+                            Log.d(TAG, "onMessage: " + projectId);
+                        }
+                    }
+                }
+                switch (code) {
+                    //切换页面
+                    case 2:
+                        switch (pageCode) {
+                            //未知页面
+                            case 0:
+                                break;
+                            //轮播页面
+                            case 1:
+                                if (projectId != -1) {
+                                    switchFragment(CAROUSEL_FRAGMENT_ID);
+                                } else {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(mContext, "ProjectId:" + projectId, Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                }
+                                break;
+                            //投票页面
+                            case 2:
+                                switchFragment(VOTE_FRAGMENT_ID);
+                                break;
+                            //抢答页面
+                            case 3:
+                                switchFragment(RESPONDER_FRAGMENT_ID);
+                                break;
+                            //微信墙页面
+                            case 4:
+                                switchFragment(WE_CHAT_WALL_FRAGMENT_ID);
+                                break;
+                            case 5:
+                                switchFragment(SHOW_PICTURE_ID);
+                                break;
+                            default:
+                                break;
+                        }
+                        //将当前页面信息封装成 json
+                        CurrentPageData currentPageData = new CurrentPageData();
+                        currentPageData.setCode(1);
+                        currentPageData.setData(currentPageData.new Data(macAddress, pageCode));
+                        String sendJson = new Gson().toJson(currentPageData);
+                        //跳转之后需要向服务器发送当前页面数据
+                        webSocket.send(sendJson);
+                        break;
+                    //开始抢答,使抢答按钮变得可点击
+                    case 5:
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                startResponder();
+                            }
+                        });
+                        break;
+                    //停止抢答，使按钮变得不可点击
+                    case 6:
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                stopResponder();
+                            }
+                        });
+                        break;
+                    //抢答结果广播
+                    case 8:
+                        //设置抢答结果
+                        responderResult = data.getData().getName();
+                        //切换抢答结果页面
+                        switchFragment(RESPONDER_RESULT_FRAGMENT_ID);
+                        break;
+                    //刷新弹幕消息
+                    case 9:
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                refreshWeChatData(text);
+                            }
+                        });
+                        break;
+                    default:
+                        break;
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+                removeWebsocket();
+            }
+        }
+
+        @Override
+        public void onMessage(WebSocket webSocket, ByteString bytes) {
+            super.onMessage(webSocket, bytes);
+        }
+
+        @Override
+        public void onClosing(WebSocket webSocket, int code, String reason) {
+            this.onClosed(webSocket, code, reason);
+            Log.d(TAG, "onClosing: " + reason + code);
+            //重新链接 websocket
+            restartConnectWebSocket();
+        }
+
+        /**
+         * 正常关闭
+         */
+        @Override
+        public void onClosed(WebSocket webSocket, int code, String reason) {
+            super.onClosed(webSocket, code, reason);
+            Log.d(TAG, "onClosed: " + reason);
+        }
+
+        @Override
+        public void onFailure(WebSocket webSocket, Throwable t, Response response) {
+            super.onFailure(mWebSocket, t, response);
+            t.printStackTrace();
+            Log.e(TAG, "onFailure: Throwable " + t.toString());
+            restartConnectWebSocket();
+        }
     }
 }

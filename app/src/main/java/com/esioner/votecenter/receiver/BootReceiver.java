@@ -4,8 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import com.esioner.votecenter.MainActivity;
-
 /**
  * 开机自启
  *

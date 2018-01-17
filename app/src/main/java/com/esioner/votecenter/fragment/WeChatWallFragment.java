@@ -1,7 +1,6 @@
 package com.esioner.votecenter.fragment;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -15,12 +14,9 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.request.transition.Transition;
 import com.esioner.votecenter.MainActivity;
 import com.esioner.votecenter.R;
 import com.esioner.votecenter.adapter.SpaceItemDecoration;
@@ -37,8 +33,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import okhttp3.Call;
-import okhttp3.Callback;
 import okhttp3.Response;
 
 import static android.content.Context.INPUT_METHOD_SERVICE;
@@ -68,17 +62,22 @@ public class WeChatWallFragment extends Fragment implements View.OnClickListener
      * 每次更新获取到的数据
      */
     private List<WeChatDetailData> newDatas;
+
+
     private EditText etInput;
     private Button btnSendBarrage;
     private InputMethodManager imm;
     private ImageView iv;
     private Thread bgThread;
+    private MainActivity mActivity;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        mContext = ((MainActivity) getActivity()).getContext();
+        mActivity = ((MainActivity) getActivity());
+        mContext = mActivity.getContext();
         imm = (InputMethodManager) mContext.getSystemService(INPUT_METHOD_SERVICE);
+
     }
 
     @Nullable
@@ -108,17 +107,18 @@ public class WeChatWallFragment extends Fragment implements View.OnClickListener
                     String jsonData = response.body().string();
                     Log.d(TAG, "onResponse: " + jsonData);
                     final WeChatBackgroundData backgroundData = new Gson().fromJson(jsonData, WeChatBackgroundData.class);
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            //type": 2 抢答终端背景图片"
-                            if (backgroundData.getData().getType() == 0) {
-                                String imageSrc = backgroundData.getData().getImgSrc();
-                                Glide.with(mContext).load(imageSrc).into(iv);
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                //type": 2 抢答终端背景图片"
+                                if (backgroundData.getData().getType() == 0) {
+                                    String imageSrc = backgroundData.getData().getImgSrc();
+                                    Glide.with(mContext).load(imageSrc).into(iv);
+                                }
                             }
-                        }
-                    });
-
+                        });
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -130,9 +130,6 @@ public class WeChatWallFragment extends Fragment implements View.OnClickListener
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if (bgThread.isAlive()) {
-            bgThread.destroy();
-        }
     }
 
     /**
@@ -149,6 +146,11 @@ public class WeChatWallFragment extends Fragment implements View.OnClickListener
         });
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
     /**
      * 显示数据
      * 判断该 adapter 是否已存在
@@ -157,6 +159,7 @@ public class WeChatWallFragment extends Fragment implements View.OnClickListener
         LinearLayoutManager manager = new LinearLayoutManager(getContext());
         if (adapter == null) {
             adapter = new WeChatWallRecyclerViewAdapter(allDatas);
+            Log.d(TAG, "updateView: " + allDatas.size());
             rvWeChatWall.addItemDecoration(new SpaceItemDecoration(5));
             rvWeChatWall.setLayoutManager(manager);
             rvWeChatWall.setAdapter(adapter);
@@ -175,8 +178,16 @@ public class WeChatWallFragment extends Fragment implements View.OnClickListener
     public void initData(List<WeChatDetailData> list) {
         newDatas = list;
         allDatas.addAll(newDatas);
+        Log.d(TAG, "initData:allDatas " + allDatas.size());
+        Log.d(TAG, "initData:list " + list.size());
         //更新数据
         updateView();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        //将 list 保存在本地
     }
 
     /**
